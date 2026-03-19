@@ -20,12 +20,12 @@ clc; clear; close all;
 
 % System parameter struct
 params.m  = 1.0;
-params.k  = 20.0;
-params.L0 = 1.0 * 0;
-params.g  = 9.81;
+params.k  = 1.0;
+params.L0 = 0.0;
+params.g  = 9.81* 0;
 
-S0 = [1.2; 0.2; 0.0; 0.0];          % [x0; y0; vx0; vy0]
-tspan = [0 3];                      % Initial time, Final time
+S0 = [1.0; 0.0; 0.0; 1.0];          % [x0; y0; vx0; vy0]
+tspan = [0 10];                      % Initial time, Final time
 
 h = 1e-3;
 
@@ -184,7 +184,7 @@ end
         > Large values result in numerical errors. Marginally large values
         (approx 1e3) leads to unintuitive behavior.
     
-    iii. G = 0 and \vec{v} = 0 must constrain the motion of the mass to a
+    iii. g = 0 and \vec{v} = 0 must constrain the motion of the mass to a
     straight line.
         > From the animation we see this to be the case.
     
