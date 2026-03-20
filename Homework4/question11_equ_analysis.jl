@@ -1,6 +1,6 @@
 # ===== Engineering Mathematics -- Homework 4, Question 11 ===== #
 # Author: Esraaj Sarkar Gupta
-# Date: 15th February, 2026
+# Date: 20th March, 2026
 
 # For the analysis  of equilibrium points near anchors
 
