@@ -415,15 +415,6 @@ tspan_s = (0.0, 15.0)
 tspan_u = (0.0,  2.0)
 δu0 = [0.5, 0.5, 1.0, 2.0] # State Offset
 
-# Define linearized ODE function
-function linearized_system!(du, u, p, t)
-    # Jacobian is passed as the parameter
-    J_matrix = p
-
-    # Liniearized System du = J @ u
-    mul!(du, J_matrix, u)
-end
-
 # -- Linearization and Plot Block -- #
 # ---- Linearization about Fixed Points ---- #
 
@@ -542,7 +533,7 @@ unstable_point = fixed_points[unstable_point_index]
 linearize_and_plot(
     unstable_point,       # The struct
     "Unstable",           # The label string
-    δu0,                  # Offset
+    δu0 + ,                  # Offset
     tspan_u,              # Time
     params,               # The system parameters
     :red                  # Line colour
