@@ -1,0 +1,1963 @@
+\documentclass{article}
+
+% -------------------- Packages --------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{cleveref}
+\usepackage{mdframed}
+
+
+\geometry{margin=1in}
+\setlength{\parindent}{0pt}
+
+\usepackage{fontspec}
+\setmonofont{DejaVu Sans Mono}[Scale=0.9]
+
+\definecolor{LightGray}{gray}{0.95} % 0.95 is a nice, subtle light gray. Lower numbers are darker.\
+\usepackage{minted}
+\setminted{
+    breaklines=true,
+    encoding=utf8,
+    fontsize=\small,
+    bgcolor=LightGray, % Applies the gray background
+    frame=single,      % Draws a solid box around the code
+    framesep=0mm       % Adds a little padding between the text and the box
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,  % This now points to DejaVu Sans Mono
+  columns=flexible,
+  breaklines=true,
+  keepspaces=true,
+  % LuaLaTeX needs this to pass the raw UTF-8 bytes to the font
+  extendedchars=true,
+}
+
+% -------------------- MATLAB Listings Style --------------------
+\lstdefinestyle{matlab}{
+    language=Matlab,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=10pt,
+    frame=single,
+    breaklines=true,
+    tabsize=2,
+    showstringspaces=false
+}
+
+% --- Define Julia Language --- %
+\lstdefinelanguage{Julia}{
+  morekeywords={
+    abstract,break,case,catch,const,continue,do,else,elseif,end,export,false,for,function,
+    immutable,import,importall,if,in,macro,module,quote,return,struct,true,try,type,
+    typealias,using,while
+  },
+  sensitive=true,
+  morecomment=[l]{\#},
+  morecomment=[s]{\#=}{=\#},
+  morestring=[b]",
+  morestring=[m]'
+}
+
+% --- Custom Styling for Julia --- %
+\lstset{
+    language=Julia,
+    backgroundcolor=\color{gray!5},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!50!black},
+    stringstyle=\color{magenta},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    breaklines=true,
+    frame=single,
+    showstringspaces=false
+}
+
+\lstset{style=matlab}
+
+% ---------- My Macros ---------- %
+
+
+
+\title{Homework for Engineering Mathematics}
+\author{Esraaj Sarkar Gupta}
+\date{February 2026}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Syntactic Introduction}
+I have attempted and successfully completed exercises from Getting Started with Matlab by Rudra Pratap. I am now familiar with the basics of Matlab syntax.
+
+\section{Numerical Differentiation -- Forward Difference Method}
+
+The analytic solution of the differential of $\sin(x)$
+\begin{equation}
+    \frac{d\sin(x)}{dx} = \cos(x)
+\end{equation}
+
+is approximated to
+
+\begin{equation}
+    \frac{d\sin(x)}{dx} = \lim_{\epsilon \xrightarrow{} 0} \frac{\sin{(x + \epsilon)} - \sin(x)}{\epsilon}
+\end{equation}
+
+\begin{lstlisting}
+% ===== Engineering Mathematics -- Homework 1 ===== %
+% Author: Esraaj Sarkar Gupta
+% Date: 1st February, 2026
+
+% -- Some commonly used helper functions -- %
+function err = Error(x,y)
+arguments
+    x (:,1) double
+    y (:,1) double = 0
+end
+    err = abs(x-y);
+end
+
+% ---- Question 2 ---- %
+
+function dsin = dsin_numerical(x, epsilon)
+arguments
+    x (1,1) double = 1          % Accept coloumn vectors
+    epsilon (1 ,1) double = 1e-3 % Default epsilon value
+end
+
+    dsin = (sin(x + epsilon) - sin(x)) ./ epsilon;
+end
+
+% -- 2 Part A: Compute dsinx(x = 1) -- The numerical derivative -- %
+
+x_qn2 = 1.0;
+numerical_derivative_sinx = dsin_numerical(1.0);
+analytical_derivative_sinx = cos(x_qn2);
+
+fprintf("The numerically computed derivative is %.5f and the analytically computed derivative is %.5f\n", ...
+    numerical_derivative_sinx, analytical_derivative_sinx);
+
+error = Error(numerical_derivative_sinx, analytical_derivative_sinx);
+
+fprintf("The error is %.5f\n", error)
+
+% -- 2 Part B : Generating the h vs err graph -- %
+
+epsilon_values = logspace(-1, -16, 100);
+numerical_derivative_values = arrayfun(@(e) dsin_numerical(x_qn2, e), epsilon_values);
+
+error_arr = Error(numerical_derivative_values, analytical_derivative_sinx);
+
+% Plot graph
+loglog(epsilon_values, error_arr);
+grid on
+xlabel('\epsilon');
+ylabel('|error|');
+title("\epsilon vs Error graph");
+shg
+
+%{
+    From the graph it is evident that the best value for epsilon lies
+    around the value 1e-8, after which roundoff errors pick up.
+%}
+
+% -- 2 Part C : Using eps to estimate ideal h (hoipefully for extra credit) -- %
+
+h_eps = sqrt(eps(max(1, abs(x_qn2)))) * max(1, abs(x_qn2)); % Use matlab eps
+
+d_eps = dsin_numerical(x_qn2, h_eps);
+err_eps = Error(d_eps, cos(x_qn2));
+
+fprintf("h from eps is %.5e\n", h_eps);
+fprintf("Derivative using h_eps is %.5f, error is %.5e\n", d_eps, err_eps);
+
+% Compare with sweep minimum
+[err_min, idx] = min(error_arr);
+h_min = epsilon_values(idx);
+
+fprintf("Best h from sweep is %.5e with error %.5e\n", h_min, err_min);
+
+hold on
+loglog(h_eps, err_eps, 'o')
+loglog(h_min, err_min, 'x')
+legend('|error|', 'h\_eps', 'h\_min', 'Location', 'best')
+hold off
+   
+\end{lstlisting}
+
+We measure the absolute error $e = |\cos(x) - f(x)|$ where $f'(x)$ is the numerical derivative of the function $f(x)$.
+
+\textbf{Console Output}
+\begin{lstlisting}[language={}]
+The numerically computed derivative is 0.53988 and the analytically computed derivative is 0.54030
+The error is 0.00042
+h from eps is 1.49012e-08
+Derivative using h_eps is 0.54030, error is 6.90507e-09
+Best h from sweep is 7.56463e-09 with error 1.03059e-09
+\end{lstlisting}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{question2/error_graph.png}
+    \caption{Forward Difference Error vs $\epsilon$ Graph}
+    \label{fig:forward_difference_error_vs_h}
+\end{figure}
+
+\section{Estimating the True Error Without an Analytical Solution}
+Estimating errors in numerical ODE solving (Euler's Method) and the relation so step size. This can be done without knowing the exact analytical solution. We know that
+
+\begin{equation}
+    x_{t+1}^{(h)} = x_t + h f(x_t, t),
+\end{equation}
+
+and thus
+
+\begin{equation}
+    x_{t+1}^{(h/2)} = x_t + \frac{h}{2} f(x_t, t).
+\end{equation}
+
+If we define the exact solution of the ODE to be $y_t$, and assuming that the error in Euler's Method is $\mathcal{O}(h)$, we may write that
+
+\begin{equation}
+    y_t = x_t^{(h)} + Ch + \mathcal{O}(h^2).
+\end{equation}
+
+With the difference
+
+\begin{equation}
+    x_t^{(h/2)} - x_t^{(h)} = \bigg(y_t - C\frac{h}{2} - \mathcal{O}(h^2)\bigg) - \bigg(y_t - Ch - \mathcal{O}(h^2)\bigg)
+\end{equation}
+
+and ignoring the $\mathcal{O}(h^2)$ term,
+
+\begin{equation}
+    x_t^{(h)} - x_t^{(h/2)} = C \frac{h}{2}.
+\end{equation}
+
+Thus, we may estimate the error $Ch = y_t - x_t^{(h)}$ as
+
+\begin{equation}
+    \text{error}(h) \approx 2 \bigg(x_t^{(h)} - x_t^{(h/2)} \bigg)
+\end{equation}
+
+\begin{lstlisting}
+% ===== Engineering Mathematics -- Homework 1 ===== %
+% Author: Esraaj Sarkar Gupta
+% Date: 1st February, 2026
+
+% Housekeeping
+clear; clc; close all;
+
+% ---- Question 3 -- Euler: error vs step size ---- %
+% ODE: dx(t) = p x(t),  x(0)=X0
+
+p  = -1;     % Parameter
+X0 =  4;     % Initial condition
+T  =  5;     % Final time
+
+% Step sizes
+h_values = logspace(-4, -7, 100).';
+
+% Exact value at T (solved analytically by esraaj)
+xT_exact = X0 * exp(p*T);
+
+% Arrays to store resultant data
+err_true_T   = zeros(size(h_values));   % |x_h(T) - x_true(T)|
+
+% Relative error esitmates
+err_est_T    = zeros(size(h_values));   % |x_h(T) - x_h/2(T)|
+err_est_2x   = zeros(size(h_values));   % 2*|x_h(T) - x_h/2(T)|
+
+% --- Main loop-- sweep h --- %
+for i = 1:numel(h_values)
+    h = h_values(i);
+
+    % Euler with step h
+    [t_h, x_h] = Eulers_Method(X0, p, h, T);
+    xT_h = x_h(end);
+
+    [t_h2, x_h2] = Eulers_Method(X0, p, h/2, T);
+    xT_h2 = x_h2(end);
+
+    err_true_T(i) = abs(xT_h - xT_exact);
+
+    err_est_T(i)  = abs(xT_h - xT_h2);
+
+    err_est_2x(i) = 2 * err_est_T(i);
+end
+
+% ---- Plot: true error and the estimate ---- %
+figure('Name','Euler: error vs h','NumberTitle','off');
+loglog(h_values, err_true_T, 'LineWidth', 2); hold on;
+loglog(h_values, err_est_T,  'LineWidth', 2);
+loglog(h_values, err_est_2x, 'LineWidth', 2);
+grid on
+xlabel('h');
+ylabel('Error at t = T');
+title('Euler method: true error vs step-doubling estimate');
+legend('|x_h(T) - x_{exact}(T)|', '|x_h(T) - x_{h/2}(T)|', '2|x_h(T) - x_{h/2}(T)|', ...
+       'Location','best');
+shg
+
+%{
+Observations:
+One may estimate the true error of a system using this method of comparing
+the difference between the results of consecutive step sizes.
+
+This is possible since error is directly propotionate to the step size --
+euler is linear.
+
+x_h(T) - x_h/2 = Ch - Ch/2 + O(h^2) + ... (we ignore non-linear terms).
+Thus, the estimated error is offset by some constant from the true error by
+a linear approximation.
+%}
+
+% -- Local Functions -- %
+
+function dX = f(X, p)
+    dX = p * X;
+end
+
+function [t, X] = Eulers_Method(X0, p, h, T)
+    % Euler method for scalar ODE X' = f(X,p), with X(0) = X0
+    % We force the grid to land exactly on T.
+
+    N = round(T/h) + 1;       % number of points
+    t = linspace(0, T, N).';  % time vector
+    h = t(2) - t(1);          % actual step used
+
+    X = zeros(N,1);
+    X(1) = X0;
+
+    for k = 1:N-1
+        X(k+1) = X(k) + h * f(X(k), p);
+    end
+end
+\end{lstlisting}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{question3/error_vs_h.png}
+    \caption{Estimating the true error without an analytical solution}
+    \label{fig:Estimating the true error without an analytical solution}
+\end{figure}
+
+
+\section{Solving ODEs using Euler's Method}
+
+We find the solution to the ordinary differential equation $\dot{X} = pX$ for some arbitrary parameter $p \in \mathbb{R}$.
+
+\begin{lstlisting}
+% ===== Engineering Mathematics -- Homework 1 ===== %
+% Author: Esraaj Sarkar Gupta
+% Date: 1st February, 2026
+
+% ---- Question 4 -- Euler's Method ---- %
+
+p = [-1];   % Parameter list
+X0 = [4];   % Initial Conditions: x_0,
+h = 0.01;   % Step size
+T = 5;      % Final time
+
+% Main Function
+[t, X] = Eulers_Method(X0, p, h, T);
+
+% Plotting
+plot(t, X)
+xlabel('t'); ylabel('X(t)')
+title('Euler method solution')
+grid on
+shg
+
+% -- Local Functions -- %
+
+function dX = f(X, p)
+    dX = p * X;
+end
+
+function [t, X] = Eulers_Method(X0, p, h, T)
+    N = round(T/h) + 1;         % Number of steps
+    t = linspace(0, T, N).';    % Time values
+    X = zeros(N,1);             % X values
+    X(1) = X0;                  % Initial X value
+    
+    % Main loop
+    for k = 1:N-1
+        X(k+1) = X(k) + h * f(X(k), p);
+    end
+end
+\end{lstlisting}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{question4/euler_solution.png}
+    \caption{Euler Method Solution to $\dot{X} = pX$}
+    \label{fig:placeholder}
+\end{figure}
+
+\section{The Motion of a Double Pendulum}
+The system consists of a double pendulum modeled with two point masses ($m_1, m_2$) and two linkages ($R, \delta$). This setup represents a coupled, non-linear dynamical system where the motion of the secondary mass is governed by both gravitational potential and the inertial torque transmitted through the primary linkage, leading to characteristic chaotic behavior.
+
+The dynamics were derived via Lagrangian Mechanics. To simplify the implementation, the system is expressed using the following geometric and inertial constants:
+
+\begin{align*}
+    A &= \frac{1}{3}m_1 R^2 + 1.5 m_2 \delta^2 \\
+    B &= 1.5 \delta^2 \\
+    C &= 2 m_2 g R \\
+    D &= m_2 B \\
+    E &= 2 m_2 g \delta
+\end{align*}
+
+The second-order coupled ordinary differential equations (ODEs) for the angular displacements $\theta$ and $\phi$ are given by:
+
+\begin{equation}
+    \ddot{\theta} = \frac{B E \cos(\phi) - C D \sin(\theta)}{AD}
+\end{equation}
+
+\begin{equation}
+    \ddot{\phi} = \frac{-(A+B) E \cos(\phi) + C D \sin(\theta)}{AD}
+\end{equation}
+
+For numerical integration, these are reduced to a first-order system $\dot{\mathbf{y}} = f(t, \mathbf{y})$ where $\mathbf{y} = [\theta, \dot{\theta}, \phi, \dot{\phi}]^T$.
+
+\begin{lstlisting}
+% ===== Engineering Mathematics -- Homework 1 ===== %
+% Author: Esraaj Sarkar Gupta
+% Date: 1st February, 2026
+
+% Housekeeping
+clear; clc; close all;
+
+% ---- Question 5 -- Equations of Motion of a Double Pendulum ---- %
+
+% -- System Parameters -- %
+g = 9.8;
+m1 = 2;
+m2 = 3;
+R = 10;
+delta = 3;
+
+% Simplify parameteras (for the sake of our sanity)
+A = (m1 * R^2 / 3) + (1.5 * m2 * delta^2);
+B = 1.5 * delta^2;
+C = 2 * m2 * g * R;
+D = m2 * B;
+E = 2 * m2 * g * delta;
+
+% Parameter Vector
+p = [A; B; C; D; E];
+
+% -- Time Spans -- %
+t0 = 0;
+T  = 20;
+
+% Euler step size
+h = 1e-6;
+
+% -- Intial Conditions -- %
+y0 = [1.0; 0.0; 0.0; 0.0]; % y = [theta, theta_dot, phi, phi_dot]
+
+% -- Main Function --%
+rhs = @(t,y) coupled_system_rhs(t, y, p);
+
+% Solve using Euler
+[t, Y] = euler_system(rhs, t0, T, y0, h);
+
+theta     = Y(:,1);
+theta_dot = Y(:,2);
+phi       = Y(:,3);
+phi_dot   = Y(:,4);
+
+% ---- Plotting ---- %
+figure('Name','Angles vs time','NumberTitle','off');
+plot(t, theta, 'LineWidth', 2); hold on;
+plot(t, phi,   'LineWidth', 2);
+xlabel('Time');
+ylabel('Angle (radians)');
+legend('\theta_1(t)','\theta_2(t)','Location','best');
+grid on;
+title('Euler Method Solution of the Coupled System');
+shg
+
+figure('Name','Phase space','NumberTitle','off');
+
+subplot(1,2,1);
+plot(theta, theta_dot, 'LineWidth', 1.5);
+xlabel('\theta_1'); ylabel('\dot{\theta_1}');
+title('Phase Space: \theta_1 vs. \dot{\theta_1}');
+grid on;
+
+subplot(1,2,2);
+plot(phi, phi_dot, 'LineWidth', 1.5);
+xlabel('\theta_2'); ylabel('\dot{\theta_2}');
+title('Phase Space: \theta_2 vs. \dot{\theta_2}');
+grid on;
+
+shg
+
+%{
+    One may observe non-linear patterns and chaotic aperiodicity in these
+    graphs, indicative of a double pendulum's chaotic motion. This is
+    especially evident in the non-closed phase diagrams.
+%}
+
+% == Local Functions == %
+%{
+    Likely to Professor Ruina's disappointment, I derived these equations
+    of motion of a double pendulum using Lagrangian Mechanics as opposed to
+    having used moment balance.
+
+    One day I will learn to do better.
+%}
+
+function dydt = coupled_system_rhs(~, y, p)
+    % Unpack parameters
+    A = p(1); B = p(2); C = p(3); D = p(4); E = p(5);
+
+    % y = [theta, theta_dot, phi, phi_dot]
+    theta     = y(1);
+    theta_dot = y(2);
+    phi       = y(3);
+    phi_dot   = y(4);
+
+    % Equations of Motion
+    theta_ddot = (B * E * cos(phi) - C * D * sin(theta)) / (A * D);
+    phi_ddot   = (-A * E * cos(phi) - B * E * cos(phi) + C * D * sin(theta)) / (A * D);
+
+    dydt = [theta_dot; theta_ddot; phi_dot; phi_ddot];
+end
+
+function [t, Y] = euler_system(rhs, t0, tf, y0, h)
+    % Euler integrator for vector ODEs y' = rhs(t,y)
+    arguments
+        rhs (1,1) function_handle
+        t0  (1,1) double
+        tf  (1,1) double
+        y0  (:,1) double
+        h   (1,1) double {mustBePositive}
+    end
+
+    N = floor((tf - t0)/h) + 1;
+    t = t0 + (0:N-1)'*h;
+
+    nstate = numel(y0);
+    Y = zeros(N, nstate);
+    Y(1,:) = y0.';
+
+    for k = 1:N-1
+        yk = Y(k,:).';
+        Y(k+1,:) = (yk + h * rhs(t(k), yk)).';
+        % If you start seeing NaNs, your step is too big (Euler is fragile).
+    end
+end
+\end{lstlisting}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{question5/dPendu_angles_vs_time.png}
+    \caption{Double Pendulum Angles vs Time}
+    \label{fig:placeholder}
+\end{figure}
+
+The simulation yields several key insights into the nature of coupled oscillations:
+\begin{itemize}
+    \item \textbf{Chaotic Aperiodicity:} The time-series plot of $\theta_1(t)$ and $\theta_2(t)$ demonstrates a lack of repeating patterns. Unlike a simple pendulum, the energy transfer between the two masses prevents a simple harmonic steady state.
+    \item \textbf{Phase Space Divergence:} The phase diagrams ($\theta_1$ vs. $\dot{\theta_1}$ and $\theta_2$ vs. $\dot{\theta_2}$) show non-closed trajectories. In a dissipative or simple periodic system, these would form closed loops or spirals; here, they fill the phase plane in a manner indicative of strange attractors.
+    \item \textbf{Numerical Sensitivity:} The "Euler fragility" mentioned in the source code is evident. Because Euler's method does not conserve energy, small errors in the $\ddot{\theta_1}$ calculation accumulate rapidly, necessitating the infinitesimal step size to prevent the solution from diverging to infinity (NaN results).
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{question5/dPendu_phase_space.png}
+    \caption{Double Pendulum Phase Spaces}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\section{Central Difference Differentiation -- RK2}
+This analysis explores the numerical approximation of the derivative of $f(x) = \sin(x)$. By comparing the Forward Difference and Central Difference methods across a logarithmic range of step sizes ($10^{-2}$ to $10^{-16}$), we characterize the transition from discretization-limited regimes to precision-limited regimes.
+
+The Central Difference method is a second-order approximation derived from the Taylor series expansion. The formula used for evaluation is:
+
+\begin{equation}
+    f'(x) \approx \frac{f(x + h) - f(x - h)}{2h}
+\end{equation}
+
+For comparison, the first-order Forward Difference method is defined as:
+
+\begin{equation}
+    f'(x) \approx \frac{f(x + h) - f(x)}{h}
+\end{equation}
+
+\begin{lstlisting}
+% ===== Engineering Mathematics -- Homework 2, Question 6 ===== %
+% Author: Esraaj Sarkar Gupta
+% Date: 8th February, 2026
+
+% Housekeeping
+clc; clear; close all;
+
+% ==== Higher Order Methods ==== %
+
+%% Part A -- Differentiation using Central Difference %%
+
+
+% -- Function to be Differentiated -- %
+f = @(x) sin(x);
+
+% True analytic derivative
+df = @(x) cos(x);
+
+% ---- Numerical Evaluation -- Central Difference Method ---- %
+%{
+    delta_f(x) ~ f(x + h) - f(x-h) / 2h
+%}
+
+X0  = 1.0;
+%{
+    The point 0 is particularly bad for this analysis since
+    sin(h) - sin(-h) ~ 2h.
+
+    Since the program returns a 0, and thus error = 0 - 0, the plot
+    attempts to plot log(0 - 0 = 0), which is undefined and thus it cannot
+    plot.
+%}
+
+% -- List of h values -- %
+h_values = logspace(-2, -16, 100);
+evaluation = central_difference(f, X0, h_values);
+
+% ---- Error Evaluation ---- %
+true_val = df(X0);
+errors = abs(true_val * ones(size(h_values)) - evaluation);
+
+% Plot
+figure;
+loglog(h_values, errors, 'o-', 'LineWidth', 1.6, 'MarkerSize', 4);
+xlabel('h', 'FontSize', 12)
+ylabel('Absolute error', 'FontSize', 12)
+title('Central difference error for d/dx(sin x) at x=0', 'FontSize', 13)
+legend('Central difference', 'Location', 'best')
+set(gca, 'FontSize', 11, 'LineWidth', 1.1)
+hold off
+shg;
+
+% ---- Comparing h error vs Forward Difference Method ---- %
+evaluation_forward_difference = forward_difference(f, X0, h_values);
+errors_forward_difference = abs(true_val * ones(size(h_values)) - evaluation_forward_difference);
+
+% Comparision plot
+figure;
+loglog(h_values, errors, 'o-', 'LineWidth', 1.6, 'MarkerSize', 4);
+hold on
+loglog(h_values, errors_forward_difference, 's--', 'LineWidth', 1.6, 'MarkerSize', 4);
+hold off
+xlabel('h', 'FontSize', 12)
+ylabel('Absolute error', 'FontSize', 12)
+title('Comparison between central difference and forward difference methods for sin(x = 0).', 'FontSize', 13)
+legend('Central difference', 'Forward difference', 'Location', 'best')
+set(gca, 'FontSize', 11, 'LineWidth', 1.1)
+shg;
+
+
+% ---- Functions ----- #
+function delta_f = central_difference(f, x, h)
+    delta_f = ( f(x + h) - f(x - h)) ./ (2*h);
+end
+
+function delta_f = forward_difference(f, x, h)
+    delta_f = ( f(x + h) - f(x) ) ./ h;
+end
+
+
+%{
+    OBSERVATIONS:
+        > Optimal h for central diff is much larger (~ x100) than forward
+        diff. However the abs error for central diff is much lower.
+
+        > The linear parts of the graph make it clear that the slope of the
+        central diff curve is greater than the forward diff graph. This
+        observation agrees with what one would expect from the mathematical
+        expressions of both these numerical methods.
+
+        > We see that the error of the central difference method decreases
+        with h^2. We may also show this to be true using the Taylor
+        expansion of the series.
+%}
+
+
+%% Part B -- Solving ODEs using the Midpoint Method %%
+
+% Housekeeping
+clear;
+
+% -- System -- %
+p = [1];     % Parameters
+X0 = [4];    % Intial conditions
+h = 1e-4;    % Step size
+T = 5;       % Final time
+
+% -- Main Function -- %
+[t, X] =  RK2(X0, p, h, T);
+
+% Plotting
+figure;
+plot(t, X)
+xlabel('t'); ylabel('X(t)')
+title('RK2 (Midpoint Method) solution')
+grid on
+shg
+
+% -- Local Functions -- %
+function dX = g(X, t, p)
+arguments
+    X
+    t
+    p (1,1) double = 1
+end
+    % Example: time-dependent system dX/dt = p * t * X
+    % (uses t explicitly; p is correctly applied as a scalar parameter)
+    dX = p * t .* X;
+end
+
+
+function [t, X] = RK2(X0, p, h, T)
+    N = round(T/(2*h)) + 1;     % Number of steps
+    t = linspace(0, T, N).';    % Time values
+    X = zeros(N, 1);            % Init X values
+    X(1) = X0;                  % Initial value
+
+    for k = 1:N-1
+        X_mid = X(k) + g(X(k), t(k), p) * (h/2);
+        X(k+1) =  X(k) + h * g(X_mid, t(k) + h/2);
+    end
+end
+\end{lstlisting}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{question6/rk2_vs_euler_error.png}
+    \caption{Forward Difference Differentiation vs Central Difference Differentiation}
+    \label{fig:placeholder}
+\end{figure}
+
+The log-log error plot (Fig. 1) reveals the fundamental constraints of numerical computing:
+
+\begin{itemize}
+    \item \textbf{Order of Accuracy (Slopes):} In the right-hand side of the graph ($h > 10^{-8}$), the error decreases as $h$ gets smaller. The Central Difference curve has a steeper slope of 2 in the log-log space, confirming its $O(h^2)$ truncation error, while the Forward Difference curve follows a slope of 1, confirming $O(h)$.
+
+        \begin{eqnarray}
+        E & = & Ch^2 \nonumber \\
+        \log(E) & = & \log(C) + 2\log(h)
+        \end{eqnarray}
+    
+    \item \textbf{The "V-Shape" (Round-off Error):} Below a critical $h$ value, the error stops decreasing and begins to increase. This is due to \textit{floating-point subtraction error}. As $h \to 0$, the values of $f(x+h)$ and $f(x-h)$ become so similar that their subtraction results in a loss of significant digits, amplified by the $1/h$ term in the denominator.
+    
+    \item \textbf{Optimal Step Size:} The Central Difference method achieves a significantly lower minimum error ($\approx 10^{-12}$) compared to the Forward Difference ($\approx 10^{-8}$). Furthermore, the "sweet spot" for Central Difference occurs at a larger $h$ ($\approx 10^{-5.5}$) than the Forward Difference ($\approx 10^{-8}$), making it both more accurate and computationally more robust against round-off.
+
+\end{itemize}
+
+\subsection{A Challenge : Estimating the slope of the floating-point errors}
+
+It is fairly obvious that the slope of errors in the central difference method is twice of the forward difference method. Expanding $f(x+h)$ in its Taylor Series, 
+\begin{equation}
+    f(x+h) = f(x) + h\frac{df(x)}{dx} + \frac{h^2}{2}\frac{d^2f(x)}{dx^2} + \dots
+\end{equation}
+
+Ignoring the second order terms, we get 
+
+\begin{equation}
+    \frac{df(x)}{dx} = \frac{f(x+h) - f(x)}{h}
+\end{equation}
+
+which in the log-log space, is
+
+\begin{equation}
+    \log(\text{error}) = \log(f(x+h) - f(x)) = 1 \cdot \log(h) + \log(C_1)
+\end{equation}
+
+in the form of a straight line $y = mx + c$.
+
+In central difference, $f(x+h) - f(x-h)$ is approximated to
+
+\begin{equation}
+    \frac{f(x+h) - f(x-h)}{2h} = \frac{df}{dx} + \frac{h^2}{6}\frac{d^3f}{dx^3} + \dots
+\end{equation}
+
+which gives us a log-log expression of 
+
+\begin{equation}
+    \log(\text{error}) = 2 \log\bigg(\frac{h}{6}\bigg) + \log(C_2).
+\end{equation}
+
+The accuracy of a 16-bit computer is bound by \textit{machine epsilon} $\epsilon_m \approx 10^{-16}$. As $h$ is decreased to the same order of $\epsilon_m$, we see that $f(x) \approx f(x+h) \approx f(x-h)$. Subtracting nearly identical numbers on a computer results in a phenomenon known as \textit{catastrophic subtraction}, where only the roundoff noise remains and is stored as the result of the computation.
+
+Here the roundoff error is given by the following expression since in both cases, the result of the catastrophic subtraction is divided by $h$.
+\begin{equation}
+    E_\text{rf} \approx \frac{\epsilon_m}{h}
+\end{equation}
+
+In the log-log space, this expression clearly demonstrates a slope of $-1$ as $h$ varies irrespective of the coefficient of $h$.
+
+\begin{equation}
+    \log(E_\text{rf}) = -1 \log(hc) + \log(\epsilon_m) = -1 \log(h) + \log(C_3).
+\end{equation}
+
+This derived result is consistent with observation.
+
+\section{Spring and Mass System}
+
+% Definition of the radial distance and unit vector
+Let $r = \sqrt{x^2 + y^2}$ be the magnitude of the position vector, and $\hat{e} = \frac{x\mathbf{i} + y\mathbf{j}}{r}$ be the unit vector in the radial direction.
+
+% The coupled differential equations
+\begin{align}
+    \ddot{x} &= -\frac{k}{m} \left( r - L_0 \right) \frac{x}{r} \label{eqn:question7_eomx}\\
+    \ddot{y} &= -g - \frac{k}{m} \left( r - L_0 \right) \frac{y}{r} \label{eqn:question7_eomy}
+\end{align}
+
+\begin{lstlisting}
+% ===== Engineering Mathematics -- Homework 2, Question 7 ===== %
+% Author: Esraaj Sarkar Gupta
+% Date: 8th February, 2026
+
+% Housekeeping
+clc; clear; close all;
+
+%% Part A -- Equations of Motion %%
+
+%{
+    Equations of Motion (derived analytically)
+
+    x_ddot = (1/m) [ -k ( sqrt(x^2 + y^2) - L0) \hat{e} dot i]
+    y_ddot = (1/m) [(-mg) - k ( sqrt(x^2 + y^2) - L0 \hat{e} dot j]
+    
+        where \hat{e} = (xi + yj) / sqrt(x^2 + y^2)
+%}
+
+%% Part B -- Plotting the Trajectory of the Mass
+
+% System parameter struct
+params.m  = 1.0;
+params.k  = 1000.0;
+params.L0 = 5.0;
+params.g  = 9.81;
+
+S0 = [5.0; 0.0; 0.0; 0.0];          % [x0; y0; vx0; vy0]
+tspan = [0 10];                      % Initial time, Final time
+
+h = 1e-3;
+
+% -- SOLVE -- %
+[t, S] = RK2(@(t,S) system(t,S,params), tspan, S0, h);
+
+% -- Plotting Results -- %
+
+x = S(:,1);
+y = S(:,2);
+
+figure;
+plot(x, y, 'LineWidth', 1.5);
+axis equal
+grid on
+xlabel('x'); ylabel('y');
+title('Trajectory of the mass (RK2 Midpoint)');
+
+% -- Animation -- %
+fig = figure;
+ax = axes(fig);
+cla(ax, 'reset');
+hold(ax, 'on');
+axis(ax, 'equal');
+grid(ax, 'on');
+xlabel(ax, 'x'); ylabel(ax, 'y');
+title(ax, 'Animation of System');
+
+% -- Lock Figure Axes -- %
+pad = 0.1;  % 10% padding
+xmin = min(x); xmax = max(x);
+ymin = min(y); ymax = max(y);
+
+xr = xmax - xmin;  yr = ymax - ymin;
+
+if xr == 0, xr = 10; end
+if yr == 0, yr = 10; end
+
+xlim(ax, [xmin - pad*xr, xmax + pad*xr]);
+ylim(ax, [ymin - pad*yr, ymax + pad*yr]);
+
+axis(ax, 'manual');
+
+% Create handles
+mass_pt   = plot(ax, x(1), y(1), 'o', 'MarkerSize', 10, 'LineWidth', 2);
+spring_ln = plot(ax, [0 x(1)], [0 y(1)], '-', 'LineWidth', 1.5);
+trail_ln  = plot(ax, x(1), y(1), '-', 'LineWidth', 1.2);
+
+trail_len = 300;
+skip = 5;
+
+for k = 1:skip:length(t)
+    % -- Dynamically update plot elements -- %
+    set(mass_pt,   'XData', x(k),     'YData', y(k));
+    set(spring_ln, 'XData', [0 x(k)], 'YData', [0 y(k)]);
+
+    k0 = max(1, k - trail_len);
+    set(trail_ln,  'XData', x(k0:k),  'YData', y(k0:k));
+
+    drawnow;
+end
+
+
+% -- Local Functions -- %
+
+% Modelling the System
+function dS = system(t, S, params)
+
+% -- Unpack State -- %
+% Python tuple unpacking is better <\3
+x  = S(1);
+y  = S(2);
+vx = S(3);
+vy = S(4);
+
+% -- Unpack parameter structure -- % 
+m  = params.m;
+k  = params.k;
+L0 = params.L0;
+g  = params.g;
+
+% -- Geometry -- %
+r2 = x^2 + y^2;
+r  = sqrt(r2);
+if r == 0
+    e_x = 0;
+    e_y = 0;
+else
+    e_x = x / r;
+    e_y = y / r;
+end
+
+deltaL = r - L0;
+
+% -- Forces -- %
+
+F_spring_mag = -k * deltaL;
+F_spring_x   = F_spring_mag * e_x;
+F_spring_y   = F_spring_mag * e_y;
+
+F_grav_x = 0;
+F_grav_y = -m * g;
+
+F_net_x = F_spring_x + F_grav_x;
+F_net_y = F_spring_y + F_grav_y;
+
+ax = F_net_x / m;
+ay = F_net_y / m;
+
+% -- Pack Derivatives -- %
+
+dx  = vx;
+dy  = vy;
+dvx = ax;
+dvy = ay;
+
+
+dS = [dx; dy; dvx; dvy];
+end
+
+function [t, S] = RK2(f, tspan, S0, h)
+    t0 = tspan(1);
+    tf = tspan(2);
+
+    N = floor((tf - t0)/h) + 1;      % Number of steps
+    t = (t0 + (0:N-1)*h).';          % Time values
+
+    S = zeros(N, numel(S0));         % State history
+    S(1,:) = S0(:).';                % Initial state
+
+    for k = 1:N-1
+        tk = t(k);
+        Sk = S(k,:).';               % column state
+
+        k1 = f(tk, Sk);
+        S_mid = Sk + (h/2)*k1;
+
+        k2 = f(tk + h/2, S_mid);
+        S_next = Sk + h*k2;
+
+        S(k+1,:) = S_next.';
+    end
+end
+
+%% Part C -- Checking the Numerical Solutions
+%}
+
+\end{lstlisting}
+
+
+\begin{itemize}
+\item \textbf{No Spring (k=0):} In the absence of spring force, the mass behaves as a projectile. It falls vertically if the initial velocity is zero and follows a parabolic trajectory if the initial velocity is non-zero.
+\item \textbf{Rigid Connection ($k\approx 10^5$ ):} Theoretically, an infinitely stiff spring should mimic a rigid pendulum. With the right initial conditions ($\Delta L = 0, \vec{v}_0 = 0$), this result is observed in the numerical solution.
+\item \textbf{Zero Gravity and Velocity (g=0,v=0):} Under these conditions, the system's motion is constrained to a straight line, as there are no external lateral forces to perturb the radial oscillation of the spring.
+\item \textbf{Zero Rest Length $(L_0 = 0)$:} When the rest length is zero, the spring force becomes perfectly linear along both the x and y axes. This simplifies the system into a 2D harmonic oscillator, causing the mass to move along a radial line passing through the origin.
+\end{itemize}
+
+\begin{figure}[htbp]
+     \centering
+     % --- Row 1 ---
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question7/kzero.png}
+         \caption{No Spring ($k=0$)}
+         \label{fig:k0}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question7/pendu.png}
+         \caption{Rigid Connection}
+         \label{fig:rigid}
+     \end{subfigure}
+
+     \vspace{0.5cm} % Add some vertical spacing between rows
+
+     % --- Row 2 ---
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question7/gzero_vzero.png}
+         \caption{Zero Gravity ($g=0$)}
+         \label{fig:g0}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question7/harmonic_oscillator.png}
+         \caption{Zero Rest Length ($L_0=0$), Harmonic Oscillator}
+         \label{fig:L0}
+     \end{subfigure}
+     
+     \caption{Numerical Simulation Results for Various System Parameters}
+     \label{fig:results_grid}
+\end{figure}
+
+\subsection{A Challenge: Circular Motion in the Harmonic Oscillator}
+In this subsection we attempt to derive the system parameters required to simulate circular motion in the \textbf{Zero Rest Length} case where the system behaves like a 2D harmonic oscillator.\\
+
+Any 2D system in circular motion may be described with the positions
+
+\begin{align}
+    x &= A\cos(\omega t) \\
+    y &= A\sin(\omega t).
+\end{align}
+
+which result in the second order derivatives
+
+\begin{align}
+    \ddot{x} &= -A\omega^2\cos(\omega t) \\
+    \ddot{y} & = -A\omega^2\sin(\omega t).
+\end{align}
+
+Applying these solutions to Eq. \eqref{eqn:question7_eomx} and Eq. \eqref{eqn:question7_eomy}, we see that this solution holds if and only if $\frac{k}{m} = \omega^2$ and $g = 0$. One can achieve the condition $g = 0$ if the 2D system is placed orthogonal to $\vec{F}_g$.\\
+\\
+To demonstrate this, we chose a simple example where $w^2 = \frac{k}{m} = 1$. One must chose appropriate initial conditions to observe the circular motion -- the initial velocity must be perpendicular to initial position vector (drawn from the center of the desired circle). Thus, the initial conditions $\vec{v}_0 = 1.0\; \hat{j}$ and $\vec{r} = 1.0 \; \hat{i}$ are chosen.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{question7/challenge_circular_motion.png}
+    \caption{Observed Circular Motion when $k = 1.0$, $m = 1.0$, $\vec{v}_0 = 1.0\; \hat{j}$ and $\vec{r} = 1.0 \; \hat{i}$}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\section{The Trajectory of a Cannon Ball}
+
+The equations of motion of the system are 
+\begin{align}
+\ddot{x} &= -k \dot{x} \\
+\ddot{y} &= -g - k \dot{y}
+\end{align}
+
+where $k = \frac{c_d}{m}$.\\
+\\
+
+In state-space form, where $u=[x,y,\dot{x},\dot{y}]^\text{T}$, the system is defined as:
+\begin{equation}
+\frac{d}{dt} \begin{bmatrix} x \ y \ v_x \ v_y \end{bmatrix} = \begin{bmatrix} v_x \ v_y \ -k v_x \ -g - k v_y \end{bmatrix}
+\end{equation}
+
+One may derive explicit solutions for the position of the projectile.
+
+\begin{align}
+x(t) &= \frac{v_{x0}}{k} \left( 1 - e^{-kt} \right) \\
+y(t) &= \frac{v_{y0}}{k} \left( 1 - e^{-kt} \right) - \frac{g}{k} \left( t - \frac{1}{k}(1 - e^{-kt}) \right)
+\end{align}
+
+\begin{minted}{julia}
+# ===== Engineering Mathematics -- Homework 3, Question 8 ===== #
+# Author: Esraaj Sarkar Gupta
+# Date: 15th February, 2026
+
+using DifferentialEquations
+using LinearAlgebra
+using Plots
+
+# --- Define Parameters --- #
+m   = 1
+θ   = pi/4
+v₀  = 10
+g   = 1
+c   = 1
+
+k = c/m
+
+t_final = 20
+
+t = range(.0, t_final; length=1000)
+
+# --- Initial Conditions --- #
+x₀, y₀ = .0, .0
+vx₀ = v₀ * cos(θ)
+vy₀ = v₀ * sin(θ)
+
+# ===== Part A ===== #
+# I have solved for the system analytically, I may not be correct,
+# but I have tried.
+
+function projectile_analytic(t, vx₀, vy₀, k, g)
+    x = (vx₀ / k) * (1 - exp(-k * t))
+    y = (vy₀ / k) * (1 - exp(-k * t)) - (g / k) * (t - (1 / k) * (1 - exp(-k * t)))
+    return x, y
+end
+
+results = projectile_analytic.(t, vx₀, vy₀, k, g)
+x_analytic = [r[1] for r in results]
+y_analytic = [r[2] for r in results]
+
+idx_ground = findfirst(val -> val < 0, y_analytic[2:end]) + 1
+stop_at = isnothing(idx_ground) ? length(y_analytic) : idx_ground
+
+x_analytic_sliced = x_analytic[1:stop_at]
+y_analytic_sliced = y_analytic[1:stop_at]
+
+trajectory = plot(x_analytic_sliced, y_analytic_sliced, aspect_ratio=:equal,  xlabel="x", ylabel="y", label="analytic solution")
+
+# ===== Part B ===== #
+
+# State u = [x, y, dx, dy]
+function projectile!(du, u, p, t)
+    # Unpack parameter vector
+    m, c, g = p
+
+    k = c/m # For convinience
+
+    # Unpack state vector
+    x, y, dx, dy = u
+
+    ddy = (- g) + (-k * dy)
+    ddx = -k * dx
+
+    du[1] = dx
+    du[2] = dy
+    du[3] = ddx
+    du[4] = ddy
+end
+
+# -- Initial Conditions -- #
+
+u₀  = [x₀, y₀, vx₀, vy₀]
+tspan = (.0, t_final)
+
+# Parameter Vector
+p = (m, c, g)
+
+# Callback conditon -- stop when y = 0 (hits the floor)
+
+condition(u, t, integrator) = u[2]
+affect!(integrator) = terminate!(integrator)
+cb = ContinuousCallback(condition, affect!)
+
+problem = ODEProblem(projectile!, u₀, tspan, p)
+sol = solve(problem, Tsit5(), callback = cb)
+
+x_solutions = sol[1,:]
+y_solutions = sol[2,:]
+times = sol.t
+
+plot!(trajectory, x_solutions, y_solutions,aspect_ratio=:equal, xlabel="x (m)", ylabel="y (m)", label="numerical solution")
+display(trajectory)
+
+# ===== Part C ===== #
+
+# Evaluate the analytical solution at (t=2)
+state_at_2 = [projectile_analytic(2, vx₀, vy₀, k, g)...]
+errors = []
+
+tolerances = 10 .^ range(-3, -16, length=20)
+
+for tol in tolerances
+    temp_sol = solve(problem, Tsit5(), callback=cb, reltol=tol, abstol=tol)
+    
+    u_num = temp_sol(2.0)
+    pos_num = [u_num[1], u_num[2]]
+    
+    push!(errors, norm(pos_num - state_at_2))
+end
+
+plot(tolerances, errors, 
+     xscale=:log10, yscale=:log10, 
+     marker=:circle, 
+     xlabel="Tolerance", ylabel="Error at t=2",
+     title="Convergence Study", flipx=true)
+\end{minted}
+
+\begin{figure}[htbp]
+     \centering
+     % --- Row 1 ---
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question8/unremarkable_trajectory.png}
+         \caption{Numerical and Analytical Solutions}
+         \label{fig:placeholder}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question8/large_v.png}
+         \caption{Trajectory as $v \xrightarrow{} \infty$}
+         \label{fig:placeholder}
+     \end{subfigure}
+
+    \caption{Projectile Trajectories}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Trajectory Matching:} The numerical solution using the \texttt{Tsit5()} integrator shows high visual agreement with the analytical solution. The use of a \texttt{ContinuousCallback} successfully terminates the simulation at the precise moment of ground impact (y=0).
+    
+    \item \textbf{Convergence:} The error at t=2 was evaluated against varying tolerances. The resulting log-log plot demonstrates that as the local error tolerances (abstol,reltol) are tightened, the global error decreases linearly on a logarithmic scale, confirming the stability and consistency of the solver.
+\end{itemize}
+
+\section{Statics vs Dynamics of a Spring-Damper Mass System}
+he system consists of a point mass $m$ located at position $\vec{r}_C = [x, y]^\top$. 
+Gravity $g$ acts in the downward direction, denoted as $-g\hat{j}$. 
+
+Two anchor points, $A$ and $B$, are fixed at $\vec{r}_A$ and $\vec{r}_B$, respectively. 
+The mass is connected to each anchor by a spring and a dashpot arranged in parallel:
+\begin{itemize}
+    \item \textbf{Anchor A:} Connected via a spring with constant $k_A$ and rest length $L_A$, and a parallel dashpot with damping coefficient $c_A$.
+    \item \textbf{Anchor B:} Connected via a spring with constant $k_B$ and rest length $L_B$, and a parallel dashpot with damping coefficient $c_B$.
+\end{itemize}
+
+Additionally, the mass is subject to an atmospheric drag force proportional to its speed through the air, characterized by the damping coefficient $c_d$. 
+
+The dynamic state of the system is described by the vector $z = [x, y, v_x, v_y]^\top$, while the static equilibrium state is defined by $z = [x, y, 0, 0]^\top$.
+
+The system may be described using Newton's Second Law of Motion with the vector equation
+
+\begin{equation}
+    m \frac{d^2\vec{r}_c}{dt^2} = -mg\hat{j} + \left[ k_A\delta_A + c_A \left( \frac{d\vec{l}_A}{dt} \cdot \hat{a} \right) \right] \hat{a} + \left[ k_B \delta_B + c_B \left( \frac{d\vec{l}_B}{dt} \cdot \hat{b} \right) \right] \hat{b} - c_d \frac{d\vec{r}_c}{dt}  
+    \label{Eq:System9}
+\end{equation}
+
+where
+
+\begin{eqnarray}
+    \vec{r}_c & = & \vec{r}_{A/B} + \big( \vec{L}_{A/B} + \vec\delta_{A/B} \big) \\
+    \vec{l}_{A/B} & = & \vec{L}_{A/B} + \vec\delta_{A/B} \nonumber \\
+    \vec{a} & = & \vec{r}_c - \vec{r}_A \nonumber \\
+    \vec{b} & = & \vec{r}_c - \vec{r}_B \nonumber
+    \label{Eq:System9_helper}
+\end{eqnarray}
+
+and any vector $\vec{v} = ||v|| \; \hat{v}$.
+
+In the static limit, this equation simplifies to 
+
+\begin{equation}
+    mg \; \hat{j} = k_A\delta_A \; \hat{a} + k_B\delta_B \; \hat{b}.
+\end{equation}
+
+\begin{minted}{julia}
+# ===== Engineering Mathematics -- Homework 3, Question 9 ===== #
+# Author: Esraaj Sarkar Gupta
+# Date: 15th February, 2026
+
+using DifferentialEquations
+using LinearAlgebra
+using Plots
+using NLsolve
+
+# ---- Fundamental System Parameters ---- #
+
+g = 9.810
+
+# ---- Fundamental System Parameters ---- #
+
+struct fparameters
+    m  :: Float64
+    rₐ :: Vector{Float64}
+    rᵦ :: Vector{Float64}
+
+    Lₐ :: Float64 
+    Lᵦ :: Float64 
+    
+    kₐ :: Float64
+    kᵦ :: Float64
+
+    cₐ :: Float64
+    cᵦ :: Float64
+
+    c_d :: Float64
+end
+
+# ---- Derived System Parameters ---- #
+
+struct dparameters
+    lₐ :: Float64
+    lᵦ :: Float64
+
+    a :: Vector{Float64}
+    b :: Vector{Float64}
+
+end
+
+function get_dparameters(sys::fparameters, r_c::Vector{Float64})
+    a_vec = sys.rₐ - r_c
+    b_vec = sys.rᵦ - r_c
+    
+    # Current scalar lengths
+    lₐ_val = norm(a_vec)
+    lᵦ_val = norm(b_vec)
+    
+    return dparameters(lₐ_val, lᵦ_val, a_vec, b_vec)
+end
+
+# ---- Define System Evolution ---- #
+
+function spring_damper_mass_system!(du, u, p, t)
+    # Unpack state
+    r_c = u[1:2]
+    v_c = u[3:4]
+
+    # Unpack Parameters
+    m = p.m 
+    r_A, r_B = p.rₐ, p.rᵦ
+
+    k_A, k_B = p.kₐ, p.kᵦ
+    L_A, L_B = p.Lₐ, p.Lᵦ
+
+    c_A, c_B, c_d = p.cₐ, p.cᵦ, p.c_d
+
+    # -- Geometry -- #
+    vec_to_A = r_A - r_c
+    vec_to_B = r_B - r_c
+
+    dist_A = norm(vec_to_A)
+    dist_B = norm(vec_to_B)
+
+    # Unit Vectors
+    hat_A = vec_to_A / dist_A
+    hat_B = vec_to_B / dist_B
+
+    # -- Force Calculations -- #
+
+    # - Springs - #
+    delta_A = dist_A - L_A
+    delta_B = dist_B - L_B
+    
+    F_spring_A = k_A * delta_A * hat_A
+    F_spring_B = k_B * delta_B * hat_B
+
+    # - Dampers - #
+    vel_proj_A = dot(v_c, -hat_A)
+    vel_proj_B = dot(v_c, -hat_B)
+
+    F_damp_A = -c_A * dot(v_c, hat_A) * hat_A 
+    F_damp_B = -c_B * dot(v_c, hat_B) * hat_B
+    
+    # - Drag - #
+    F_drag = -c_d * v_c
+
+    # - Gravity - #
+    F_gravity = [0.0, -m * g]
+
+    # -- Newton's Second Law -- #
+
+    F_total = F_spring_A + F_spring_B + F_damp_A + F_damp_B + F_drag + F_gravity
+    accel = F_total / m
+
+    # -- Update State -- #
+    du[1:2] = v_c    # dr/dt = v
+    du[3:4] = accel  # dv/dt = F/m
+
+end
+# ---- Solving the Unremarkable System ---- #
+
+params = fparameters(
+    5.0,          # Mass (kg)
+    [2.0, 10.0],  # Anchor A
+    [10.0, 10.0], # Anchor B
+    5.0,          # Rest Length A
+    5.0,          # Rest Length B
+    10.0,         # k_A
+    20.0,         # k_B
+    10.0,          # c_A
+    1.0,          # c_B
+    0.5           # c_d (Air Drag)
+)
+
+# Initial Conditions
+u0 = [5.0, 0.0, 0.0, 2.0] 
+
+# Time Span
+tspan = (0.0, 50.0)
+
+prob = ODEProblem(spring_damper_mass_system!, u0, tspan, params)
+sol = solve(prob, Tsit5(), saveat=0.1)
+
+phase_space = plot(sol, idxs=(1,2), 
+     title="Mass Trajectory", 
+     xlabel="x position (m)", 
+     ylabel="y position (m)", 
+     label="Path", lw=2, aspect_ratio=:equal)
+
+# Add anchors to the plot for context
+scatter!(phase_space, [params.rₐ[1], params.rᵦ[1]], [params.rₐ[2], params.rᵦ[2]], 
+         label="Anchors", markersize=8, color=:red)
+
+display(phase_space)
+
+# ---- Solving for a Static System ---- #
+
+function static_forces!(F, r_c, sys::fparameters)
+    a_vec = sys.rₐ - r_c
+    b_vec = sys.rᵦ - r_c
+    
+    lₐ = norm(a_vec)
+    lᵦ = norm(b_vec)
+    
+    hat_a = a_vec / lₐ
+    hat_b = b_vec / lᵦ
+    
+    delta_a = lₐ - sys.Lₐ
+    delta_b = lᵦ - sys.Lᵦ
+    
+    gravity = [0.0, -sys.m * g]
+    force_a = sys.kₐ * delta_a * hat_a
+    force_b = sys.kᵦ * delta_b * hat_b
+    
+    # Update the F array in-place
+    F[1] = gravity[1] + force_a[1] + force_b[1] 
+    F[2] = gravity[2] + force_a[2] + force_b[2] 
+end
+
+# ---- Generate Steady State Solution Clusters ---- #
+
+num_samples = 2000
+solutions_x = Float64[]
+solutions_y = Float64[]
+
+# Wrap the function so NLsolve only sees F and x
+target_func!(F, x) = static_forces!(F, x, params)
+
+for i in 1:num_samples
+    x0 = -5.0 + 20.0 * rand()
+    y0 = -10.0 + 25.0 * rand()
+    initial_guess = [x0, y0]
+    
+    
+    res = nlsolve(target_func!, initial_guess, autodiff=:forward, ftol=1.5)
+    
+    # If successful, save the raw, unrounded coordinates
+    if converged(res)
+        push!(solutions_x, res.zero[1])
+        push!(solutions_y, res.zero[2])
+    end
+end
+
+println("Generated $(length(solutions_x)) clustered equilibrium points.")
+# ---- Plot Results ---- #
+
+# Add the anchors to the plot
+static_solutions = scatter(
+         [params.rₐ[1], params.rᵦ[1]], 
+         [params.rₐ[2], params.rᵦ[2]], 
+         label="Anchors A & B", 
+         color=:red, 
+         markersize=6, 
+         markerstrokewidth=2)
+
+scatter!(static_solutions,
+        solutions_x, solutions_y, 
+        label="Equilibrium Points",
+        size=(500,500),
+        markersize=3,
+        color=:blue,
+        title="Static Equilibrium Positions", 
+        xlabel="X Coordinate", 
+        ylabel="Y Coordinate",
+        aspect_ratio=:equal)
+
+display(static_solutions)
+
+# ---- Custom Steady State Clustering Algorithm ---- #
+
+# Combine points for easier handling
+points = tuple.(solutions_x, solutions_y)
+
+# Round off to integers and find unique classes
+rounded_points = tuple.(round.(Int, solutions_x), round.(Int, solutions_y))
+unique_classes = unique(rounded_points)
+
+println("Identified $(length(unique_classes)) integer class seeds.")
+
+# Create a dictionary to hold the assigned points for each class
+clusters = Dict(c => Tuple{Float64, Float64}[] for c in unique_classes)
+
+# Assign each original point to the nearest integer class using Euclidean distance
+for p in points
+    best_class = unique_classes[1]
+    min_dist = Inf
+    
+    for c in unique_classes
+        # Euclidean distance formula
+        dist = sqrt((p[1] - c[1])^2 + (p[2] - c[2])^2)
+        if dist < min_dist
+            min_dist = dist
+            best_class = c
+        end
+    end
+    push!(clusters[best_class], p)
+end
+
+# Centroids of each newly formed class
+centroids_x = Float64[]
+centroids_y = Float64[]
+
+println("\n--- Final Steady State Regions ---")
+for (class_seed, cluster_points) in clusters
+    if !isempty(cluster_points)
+        # Calculate mean of X and Y
+        cx = sum(p[1] for p in cluster_points) / length(cluster_points)
+        cy = sum(p[2] for p in cluster_points) / length(cluster_points)
+        
+        push!(centroids_x, cx)
+        push!(centroids_y, cy)
+        
+        println("Region Centroid: (X: $(round(cx, digits=4)), Y: $(round(cy, digits=4)))")
+    end
+end
+
+final_solutions_plot = scatter(solutions_x, solutions_y, 
+        label="Raw Iterations",
+        size=(600, 500),
+        markersize=1,
+        markeralpha=0.3,
+        markerstrokewidth=0,
+        color=:blue,
+        title="Final Steady State Regions & Centroids", 
+        xlabel="X Coordinate", 
+        ylabel="Y Coordinate",
+        aspect_ratio=:equal
+)
+
+# Anchors for Context
+scatter!(final_solutions_plot,
+         [params.rₐ[1], params.rᵦ[1]], 
+         [params.rₐ[2], params.rᵦ[2]], 
+         label="Anchors A & B", 
+         color=:red, 
+         markersize=6, 
+         markerstrokewidth=2
+)
+
+# Final Centroids
+scatter!(final_solutions_plot,
+         centroids_x, centroids_y,
+         label="Steady State Centroids",
+         color=:gold,
+         markersize=8,
+         markerstrokecolor=:black,
+         markerstrokewidth=1.5,
+         shape=:star
+)
+
+display(final_solutions_plot)
+\end{minted}
+
+Solving for this system using a 5th order solver (TSit), one may observe obvious signs of a chaotic system
+
+\begin{itemize}
+    \item Sensitivity to initial conditions.
+    \item Strange attractors in the phase space (clearly visible)
+    \item Open loops (aperiodicity) in the phase space.
+\end{itemize}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{question9/chaos1.png}
+    \caption{TSit Numerical Solution -- Phase Space}
+    \label{fig:placeholder}
+\end{figure}
+
+One may use Julia's NLsolve (similar to MatLab's fsolve) to identify the system's static solutions. The system is reduced to its static limit and fed into NLsolve, which identified 1737 (unique and non-unique) solutions in 2000 runs. \\
+\\
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{question9/static_solutions.png}
+    \caption{NLsolve Solutions}
+    \label{fig:placeholder}
+\end{figure}
+
+One can clearly visualize that the solutions are far apart. Given the nature of the clusters, one may forgo using standard clustering algorithms in machine learning (such as KMeans or GMM) in place of much simpler algorithms. Here the following algorithm is used to define clusters.
+
+\begin{enumerate}
+    \item All solutions are reduced to their greatest integer forms. This can be done this the the error by NLsolve is smaller than $\mathcal{O}(1)$.
+    \item Unique (integral) solutions are identified. Each unique solution is assigned an unlabeled class (or cluster) as a \textit{center point}.
+    \item All the (unrounded) solutions from NLsolve are assigned a cluster based on the least Euclidean distance from the respective \textit{center point}.
+    \item The centroid of all the points in each cluster is presented a point of equillibrium.
+\end{enumerate}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\linewidth]{question9/rounded_static_solutions.png}
+    \caption{Clustered NLsolve Solutions for System Statics}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Final Steady State Regions (Centroids)}
+    \label{tab:steady_state_centroids}
+    \begin{tabular}{ccc}
+        \hline
+        \textbf{Region} & \textbf{X Coordinate (m)} & \textbf{Y Coordinate (m)} \\
+        \hline
+        1 & 6.7738 & 4.1472 \\
+        2 & 2.0000 & 10.0000 \\
+        3 & 10.9523 & 11.3063 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+To evaluate the stability of the discovered fixed points, one may simulate the system with initial positions set to the fixed points and an arbitrarily small velocities to simulate a perturbation. Observing the behaviour of the system (converging back to the fixed point/ diverging from the fixed point) allows one to assess the stability.
+
+In the system simulate here, three distinct fixed points were discovered. The system was simulated (as done above) using TSit5 from the fixed points with varying perturbations. It is discovered that two of the three fixed points are unstable. Following their respective perturbations, all three masses converge at the singular stable fixed point of the system.
+
+\begin{figure}
+    \centering
+     % --- Row 1 ---
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question9/stability.png}
+         \caption{Perturbation of $\vec{v}_0 = (0.5 \;\hat{i}+ 0.5 \;{\hat{j})}\; \text{m/s}$}
+         \label{fig:k0}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question9/stability2.png}
+         \caption{Perturbation of $\vec{v}_0 = (0.1 \;\hat{i}+ 0.1 \;{\hat{j})}\; \text{m/s}$}
+         \label{fig:rigid}
+     \end{subfigure}
+
+    \caption{Stability of Discovered Fixed Points}
+\end{figure}
+
+\section{Linear Ordinary Differential Equations}
+It is useful to consider the solution to any linear ODE to be of the form $x(t) = Ce^{\lambda t}$ where $\lambda \in \mathbb{C}$. The general solution of linear ODEs is given as a linear combination of any solutions to the same ODE. Given a coupled system of linear differential equations
+
+\begin{equation}
+    \dot{X} = AX
+\end{equation}
+
+one may consider the solution of $X$ to be of the form 
+
+\begin{equation}
+    X = e^{\lambda t}v
+\end{equation}
+
+where $v$ is some arbitrary vector of the same dimensions. Thus,
+
+\begin{equation}
+    \dot{X} = \lambda e^{\lambda t}v.
+\end{equation}
+
+This yields the eigenvalue-eigenvector equation
+
+\begin{equation}
+    \lambda v = Av.
+\end{equation}
+
+The general solution of such a system is of the form
+
+\begin{equation}
+    X(t) = c_1 e^{\lambda t} + c_2 e^{\lambda t} + \dots
+\end{equation}
+
+which is used to solve the initial value problem $X_0 = X(t=0)$.
+
+\begin{equation}
+    X_0 = c_1v_1 + c_2v_2 + \dots
+\end{equation}.
+
+Considering an example system of 
+
+\begin{equation}
+    A = 
+    \begin{pmatrix}
+        3 & 1 \\
+        1 & 3
+    \end{pmatrix}
+    \qquad X_0 =
+    \begin{pmatrix}
+        5 \\
+        0
+    \end{pmatrix}
+\end{equation}
+
+this analytical solution to compared to the solution obtained from a 5$^\text{th}$ order numerical solver.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{question10/linear_ODEs.png}
+    \caption{Linear ODEs: Numerical vs Analytical Solutions}
+    \label{fig:placeholder}
+\end{figure}
+
+\section{Revisiting the Spring-Mass Damper System -- Analysis of Linear Stability}
+The animation of the dynamics of the system is improved. Damped springs are animated (with great difficulty). The system is simulated with various parameters and various initial conditions.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{question11/animated_springs_example.png}
+    \caption{Animated Springs Example}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{minted}{julia}
+function get_spring_coords(p1, p2; R=0.35, coils=12, points=200, tilt=0.6)
+    v = p2 - p1
+    L = norm(v)
+    
+    # Unit vectors (axial and normal)
+    u = v / (L + 1e-6)
+    n = [-u[2], u[1]]
+    
+    xs = zeros(points)
+    ys = zeros(points)
+    
+    t_vals = range(0, 1, length=points)
+    for (i, t) in enumerate(t_vals)
+        # Angle parameter for the helix
+        theta = coils * 2π * t
+        
+        # Taper envelope to make ends connect cleanly to the points
+        env = sin(π * t) 
+        
+        # Calculate offset in 3D and project to 2D
+        # tilt controls how much the out-of-plane loop overlaps in 2D
+        u_dist = L * t + (R * tilt * env) * sin(theta)
+        n_dist = (R * env) * cos(theta)
+        
+        pos = p1 .+ u_dist .* u .+ n_dist .* n
+        xs[i] = pos[1]
+        ys[i] = pos[2]
+    end
+    
+    return xs, ys
+end
+
+\end{minted}
+
+\begin{figure}[!h]
+    \centering
+    % First subfigure
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question11/compression.png}
+        \caption{Anchors placed closer to each other than $L_A + L_B$}
+        \label{fig:compression}
+    \end{subfigure}
+    \hfill
+    % Second subfigure
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question11/compression_linear.png}
+        \caption{Add your linear compression caption here}
+        \label{fig:compression_linear}
+    \end{subfigure}
+    
+    \caption{Overall comparison of the two compression states}
+    \label{fig:compression_combined}
+\end{figure}
+
+\begin{mdframed}[backgroundcolor=gray!10]
+    \textbf{Careless Programming:}\\
+    While carrying out the analysis of equilibria near the anchors, a critical zero-division bug in the code defining the system is identified. Specifically in the lines \texttt{hat\_A = vec\_to\_A / dist\_A} and \texttt{hat\_B = vec\_to\_B /dist\_B}. If the object happens to be placed at the same point as one of the anchors, the corresponding distances vanish. This error is fixed by introducing a small term $\epsilon = 10^{-6}$ in the denominators.
+\end{mdframed}
+
+One may assert that the neighborhoods of the anchors generally present more fixed points. The rationale for this assertion is as follows. Springs generate the largest compressive force possible at their respective anchors, and with a expansion vector with an undefined direction $\hat\delta = \frac{\vec\delta}{0}$, the repulsive spring force is awarded an extra degree of freedom , allowing it to point in any direction. This extra degree of freedom makes these points more likely to be equilibria, although always unstable. Examples of this phenomenon are demonstrated in Fig. \ref{fig:equilibria_on_anchors}.\\
+
+\begin{equation}
+    k_B\delta_B = k_A\delta_A\sin(\theta)
+\end{equation}
+
+where $\theta$ can be anything (extra degree of freedom). $\delta_A$ is arbitrarily small. 
+
+\begin{figure}[htbp]
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question11/anchor_equillibira_1.png}
+         \caption{}
+         \label{fig:}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{question11/anchor_equillibira_2.png}
+         \caption{}
+         \label{fig:}
+     \end{subfigure}
+        \caption{Examples of fixed points coinciding with the anchors.}
+        \label{fig:equilibria_on_anchors}
+\end{figure}
+
+\textbf{Linearization}\\
+One may use the Jacobian of a system to linearize it about a point. Here the system is linearized about identified stable and unstable fixed points. The nature of fixed points may be determined by analyzing the eigenvalues of the Jacobian matrix at the fixed point.
+
+\begin{equation}
+    \dot{\delta u} = J(u^*)\;\delta u \label{Eq:jacobian}
+\end{equation}
+
+While the root-finder \texttt{fsolve} from MATLAB directly allows the user to extract the Jacobian generated at runtine, Julia's root-finder \texttt{NLsolver} does not provide such convenience. Instead, to compute the Jacobian in Julia, the package \texttt{ForwardDiff} is used.\\
+\\
+The fixed points of the system were identified, and both stable and unstable fixed points were linearized about. The system was then solved for using a 5$^\text{th}$ order solver (\texttt{Tsit()}) analogous to \texttt{ODE45} and results were compared. It is observed that the linearized system closely follows the true system near stable fixed points, while it diverges rapidly from the unstable fixed points ($\sim 2.5s$).
+
+\begin{figure}[htpb]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question11/stable_linear_vs_non_linear.png}
+        \caption{Stable Fixed Point}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question11/unstable_linear_vs_non_linear.png}
+        \caption{Unstable Fixed Point}
+    \end{subfigure}
+        \caption{Linear vs Non-Linear Behavior of Fixed Points}
+        \label{fig:linear-vs-nonlinear-fixedpoints}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{|c|c|l|l|}
+\hline
+\textbf{Real ($\alpha$)} & \textbf{Imag ($\beta$)} & \textbf{Type} & \textbf{Stability} \\ \hline
+$\alpha < 0$ & $\beta = 0$ & Stable Node & Attracting \\ \hline
+$\alpha < 0$ & $\beta \neq 0$ & Stable Focus & Attracting \\ \hline
+Mixed Signs & Any & Saddle Point & Unstable \\ \hline
+$\alpha > 0$ & $\beta = 0$ & Unstable Node & Repelling \\ \hline
+$\alpha > 0$ & $\beta \neq 0$ & Unstable Focus & Repelling \\ \hline
+$\alpha = 0$ & $\beta \neq 0$ & Center & Marginally Stable \\ \hline
+\end{tabular}
+\caption{Fixed Point Classification ($\lambda = \alpha \pm \beta i$)}
+\label{tab:eigenvalue_classification}
+\end{table}
+
+\begin{minted}{julia}
+
+# ---- Linearization about Fixed Points ---- #
+# -- Define Common Parameters -- #
+tspan_s = (0.0, 15.0)
+tspan_u = (0.0,  2.0)
+δu0 = [0.5, 0.5, 1.0, 2.0] # State Offset
+
+# -- Linearization and Plot Block -- #
+# ---- Linearization about Fixed Points ---- #
+
+# Define linearized ODE function
+function linearized_system!(du, u, p, t)
+    J_matrix = p
+    mul!(du, J_matrix, u)
+end
+
+
+# -- Modular Linearization and Plot Function -- #
+function linearize_and_plot(
+    fixed_point::fixedpoint_properties,
+    type_label::String, δu0::Vector{Float64},
+    tspan::Tuple{Float64, Float64}, 
+    sys_params,
+    tcolor::Symbol
+    )
+    
+    # Extract point specific data
+    J_point = fixed_point.J_matrix
+    u_point = [fixed_point.cx, fixed_point.cy, 0.0, 0.0]
+
+    # State setups
+    u0_linear = δu0
+    u0_nonlinear = δu0 + u_point
+
+    # --- Simulate Linear --- #
+    prob_lin = ODEProblem(linearized_system!, u0_linear, tspan, J_point)
+    sol_lin = solve(prob_lin, Tsit5(), saveat=0.1)
+
+    # --- Simulate Nonlinear --- #
+    prob_nonlin = ODEProblem(spring_damper_mass_system!, u0_nonlinear, tspan, sys_params)
+    sol_nonlin = solve(prob_nonlin, Tsit5(), saveat=0.1) 
+\end{minted}
+
+\textbf{Linearization: Special Case, $L_A = L_B = 0$ and $c_A = c_B = 0$}\\
+In the special case where both spring rest lengths $L_A$ and $L_B$ are set to zero, and the damping coefficients $c_A$ and $c_B$ are set to zero, the system fails to generate any unstable fixed points. Linearizing about the stable fixed point, it is observed that the linearized system perfectly follows the true (supposedly) non-linear system. To explain this behavior we examine the equations of motion of the system under these constraints.
+
+\begin{equation}
+    m \frac{d^2\vec{r}_c}{dt^2} = -mg\hat{j} + k_A l_A \hat{a} + k_B l_B\hat{b} - c_d \frac{d\vec{r}_c}{dt}     
+\end{equation}
+
+Consider either of the spring force terms $k_i l_i \hat{i}$. From Eq. \ref{Eq:System9_helper}, we see that $\hat{i} = -\frac{\vec{l}_i}{|l_i|}$. The spring force thus simplifies to
+
+\begin{equation}
+    \vec{F} = - k_i \vec{l_i}.
+\end{equation}
+
+This equation lacks the non linear term $|l_i| = \sqrt{x_i^2 + y_i^2}$, thus linearizing the system.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{question11/scase_true.png}
+    \caption{$L_A = L_B = c_A = c_B = 0$}
+    \label{fig:placeholder}
+\end{figure}
+
+
+
+
+
+
+
+
+
+\end{document}
