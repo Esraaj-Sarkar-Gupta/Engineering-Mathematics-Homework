@@ -1952,6 +1952,38 @@ This equation lacks the non linear term $|l_i| = \sqrt{x_i^2 + y_i^2}$, thus lin
     \label{fig:placeholder}
 \end{figure}
 
+\section{Introducing Optimization}
+
+\section{Basics of Periodic Solutions}
+Consider a system defined by the equation of motion
+
+\begin{equation}
+    \ddot{\vec{r}} = - \frac{k}{m} \vec{r}.
+\end{equation}
+
+Using the same method used earlier, we consider a solution for $\vec{r}$ of the form
+
+\begin{equation}
+    \vec{r} = A\exp(\omega t)
+\end{equation}
+
+where $i = x,y,z$. Upon equating, one may observe that $A^2 = \sqrt(-\omega^2)$. Given that the general solution of any linear second order system can be expressed as the sum of its solutions, the general solution of this problem is arrived at -- a simple harmonic oscillator.
+
+\begin{equation}
+    r_i(t) = A_i \cos(\omega t) + B_i \sin(\omega t).
+\end{equation}
+
+It is thus evident that any such system has periodic solutions. We may confirm this numerically. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{question13/periodic_solutions.png}
+    \caption{Periodic Solutions for Second Order Systems}
+\end{figure}
+
+
+
+
 
 
 
