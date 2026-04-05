@@ -150,7 +150,7 @@ scatter!(
     [0],
     [0],
     color=:red,
-    label = "Starting Point"
+    label = "Attractor"
 )
 
 # Plot the starting point
