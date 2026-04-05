@@ -153,6 +153,7 @@ scatter!(
     label = "Starting Point"
 )
 
+# Plot the starting point
 scatter!(
     p3,    
     [gu₀[1]],
@@ -160,8 +161,5 @@ scatter!(
     color=:green,
     label = "Initial Position"
 )
-
-# Plotn the starting point
-
 
 plot(p3)
