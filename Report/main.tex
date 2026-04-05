@@ -1973,14 +1973,42 @@ where $i = x,y,z$. Upon equating, one may observe that $A^2 = \sqrt(-\omega^2)$.
     r_i(t) = A_i \cos(\omega t) + B_i \sin(\omega t).
 \end{equation}
 
-It is thus evident that any such system has periodic solutions. We may confirm this numerically. 
+It is thus evident that any such system has periodic solutions. We may confirm this numerically as is done in Figure \ref{fig:second_order_periodic_numerical_solution}. 
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.5\linewidth]{question13/periodic_solutions.png}
     \caption{Periodic Solutions for Second Order Systems}
+    \label{fig:second_order_periodic_numerical_solution}
 \end{figure}
 
+\subsection{Inverse Square Central Gravity}
+In this section, a special second order system is explored. The Inverse Square Central Gravity system is given by
+
+\begin{equation}
+    \ddot\vec{r} = - G\frac{M}{r^3}\vec{r}.
+\end{equation}
+
+Despite having a cubed term in its denominator, this system is termed inverse "square" central gravity system since when the vector $\vec{r}$ is decomposed to a magnitude and direction $\vec{r} = r\hat{r}$, the right hand side expression simplifies to $-G\frac{M}{r^2}\hat{r}$.\\
+\\
+This can be solved analytically, and has been -- as the famous Kepler Problem. Here is it solved numerically using Julia. In the solutions given in Figure \ref{fig:keplers-problem}, it is assumed that $\frac{G}{M} = 10$.
+
+\begin{figure}[htpb]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/periodic.png}
+        \caption{Periodic Solution ($v_{x0} = 5$ m/s)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/inf.png}
+        \caption{Solution extends to infinity ($v_{x0} = 0.5$) m/s}
+    \end{subfigure}
+        \caption{Numerical Solutions to Kepler's Problem}
+        \label{fig:keplers-problem}
+\end{figure}
 
 
 
