@@ -1945,11 +1945,11 @@ Consider either of the spring force terms $k_i l_i \hat{i}$. From Eq. \ref{Eq:Sy
 
 This equation lacks the non linear term $|l_i| = \sqrt{x_i^2 + y_i^2}$, thus linearizing the system.
 
-\begin{figure}[!h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=0.5\linewidth]{question11/scase_true.png}
     \caption{$L_A = L_B = c_A = c_B = 0$}
-    \label{fig:placeholder}
+    \label{fig:question11_specialcase}
 \end{figure}
 
 \section{Introducing Optimization}
@@ -1967,7 +1967,7 @@ Using the same method used earlier, we consider a solution for $\vec{r}$ of the 
     \vec{r} = A\exp(\omega t)
 \end{equation}
 
-where $i = x,y,z$. Upon equating, one may observe that $A^2 = \sqrt(-\omega^2)$. Given that the general solution of any linear second order system can be expressed as the sum of its solutions, the general solution of this problem is arrived at -- a simple harmonic oscillator.
+where $i = x,y,z$. Upon equating, one may observe that $A^2 = \sqrt{(-\omega^2)}$. Given that the general solution of any linear second order system can be expressed as the sum of its solutions, the general solution of this problem is arrived at -- a simple harmonic oscillator.
 
 \begin{equation}
     r_i(t) = A_i \cos(\omega t) + B_i \sin(\omega t).
@@ -1993,7 +1993,7 @@ Despite having a cubed term in its denominator, this system is termed inverse "s
 \\
 This can be solved analytically, and has been -- as the famous Kepler Problem. Here is it solved numerically using Julia. In the solutions given in Figure \ref{fig:keplers-problem}, it is assumed that $\frac{G}{M} = 10$.
 
-\begin{figure}[htpb]
+\begin{figure}[h!]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
@@ -2010,14 +2010,167 @@ This can be solved analytically, and has been -- as the famous Kepler Problem. H
         \label{fig:keplers-problem}
 \end{figure}
 
+\subsection{General Non-Linear Second Oder Systems}
+
+ The systems thus covered in this section may be generalized with the equation
+
+\begin{equation}
+    \ddot{\vec{r}} = -k r^{n-1} \vec{r}.
+\end{equation}
+
+In the special case where the system initially has no velocity and $k_X = k_y$, one may observe that the system propagates as a straight line.
+
+\begin{figure}[h!]
+    \centering
+    % --- Top Row ---
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/nonLinear_secondOrder_3n.png}
+        \caption{$n=3$}
+        \label{fig:sub1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/nonLinear_secondOrder_5n.png}
+        \caption{$n=5$}
+        \label{fig:sub2}
+    \end{subfigure}
+
+    \vspace{0.5cm} % Adds vertical spacing between rows
+
+    % --- Bottom Row ---
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/nonLinear_secondOrder_10n.png}
+        \caption{$n=10$}
+        \label{fig:sub3}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/nonLinear_secondOrder_m5n.png}
+        \caption{$n=-5$}
+        \label{fig:sub4}
+    \end{subfigure}
+
+    \caption{Results for any $n$ under the conditions $k_X = k_y$ and $\dot{r} = 0$}
+    \label{fig:placeholder}
+\end{figure}
 
 
 
+\section{Systems with Periodic Motion}
+
+\subsection{Neutrally Stable Periodic Motion}
+Neutrally Stable Periodic Motion is the term given to periodic dynamics where perturbations to the system do not cause growth to infinity, nor does it cause the system to collapse to an attractor.\\
+
+The best example of such a system is the \textbf{harmonic oscillator}. For a two-dimensional uncoupled system, the equations of motion are defined as:
+
+\begin{equation}
+    \begin{aligned}
+        \ddot{x} &= -k_x x \\
+        \ddot{y} &= -k_y y
+    \end{aligned}
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question14/harmonic.png}
+        \caption{Unperturbed harmonic osicalltor}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question14/perturbed_harmonic_oscillator.png}
+        \caption{Perturbed harmonic osicallator}
+    \end{subfigure}
+    \caption{Phase portrait of a neutrally stable harmonic oscillator.}
+    \label{fig:harmonic-oscillator}
+\end{figure}
+
+\subsection{Unstable Periodic Motion}
+Unstable periodic motion occurs when a system possesses a periodic orbit, but any infinitesimal perturbation causes the trajectory to diverge violently from that orbit -- either escaping to infinity, collapsing into a stable fixed point, or transitioning into chaotic behavior (as is seen with the Lorenz Attractor).
+
+\subsubsection{The Unstable Circular Repeller}
+The Unstable Circular Repeller features a geometric circle as its unstable limit cycle. A particle starting exactly on the defined radius $R$ will orbit indefinitely, but any deviation will cause it to spiral inward to the origin or outward to infinity. The Cartesian state equations are
+
+\begin{equation}
+    \begin{aligned}
+        \dot{x} &= y + x(x^2 + y^2 - R^2) \\
+        \dot{y} &= -x + y(x^2 + y^2 - R^2)
+    \end{aligned}
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{question14/circular_repeller.png}
+    \caption{Phase portrait demonstrating trajectories fleeing the unstable circular limit cycle.}
+    \label{fig:circular-repeller}
+\end{figure}
+
+\subsubsection{The Reversed Van der Pol Oscillator}
+Unlike the geometric repeller, the reversed Van der Pol oscillator represents a system with non-linear damping. By flipping the sign of the damping coefficient $\mu$ from the standard model, the traditional stable limit cycle becomes an unstable "ridge" in phase space. The governing second-order differential equation is
+
+\begin{equation}
+    \ddot{x} + \mu(1 - x^2)\dot{x} + x = 0
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{question14/reverse_vdp.png}
+    \caption{Phase space trajectories diverging from the reversed Van der Pol limit cycle.}
+    \label{fig:reversed-vdp}
+\end{figure}
+
+\subsubsection{The Lorenz Attractor}
+While the Lorenz system is globally bounded (trajectories do not escape to infinity), it exhibits extreme local instability within its strange attractor. Two infinitesimally close trajectories will exponentially diverge over time, demonstrating chaotic sensitive dependence on initial conditions. Visually this system does not exhibit obvious "unstable" behavior due to its chaotic nature. The system is defined by
+
+\begin{equation}
+    \begin{aligned}
+        \dot{x} &= \sigma(y - x) \\
+        \dot{y} &= x(\rho - z) - y \\
+        \dot{z} &= xy - \beta z
+    \end{aligned}
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question14/loerentz.png}
+        \caption{Standard Trajectory}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question14/perturbed_lorenz_final.png}
+        \caption{Perturbed Trajectory ($\Delta = 10^{-5}$)}
+    \end{subfigure}
+    \caption{Chaotic divergence in the Lorenz attractor due to a microscopic initial perturbation.}
+    \label{fig:lorenz-comparison}
+\end{figure}
+
+\subsection{Asymptotically Stable Periodic Motion}
+Asymptotic stability in periodic systems is characterized by a \textbf{limit cycle}. This is a closed trajectory in phase space such that at least one other trajectory spirals into it as time approaches infinity. Unlike conservative systems, these are dissipative systems where energy is balanced non-linearly.
+
+The most prominent example is the \textbf{Van der Pol Oscillator}. The system is governed by a second-order non-linear differential equation where the damping coefficient depends on the position $x$:
+
+\begin{equation}
+    \ddot{x} - \mu(1 - x^2)\dot{x} + x = 0
+\end{equation}
+
+In this system, $\mu$ represents the non-linearity and damping strength. For any initial condition $u_0 \neq (0,0)$, the trajectory eventually "locks" onto the limit cycle. This convergence is shown in Figure \ref{fig:vdp-stable}, where paths starting both inside and outside the cycle converge to the same steady-state periodic motion.
 
 
 
-
-
-
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{question14/vdp.png}
+    \caption{Phase portrait of the Van der Pol oscillator ($\mu = 1.5$). The red and blue trajectories represent transient states converging asymptotically to the black limit cycle.}
+    \label{fig:vdp-stable}
+\end{figure}
 
 \end{document}
