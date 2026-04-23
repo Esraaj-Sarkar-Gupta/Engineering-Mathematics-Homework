@@ -24,7 +24,7 @@ function second_order_system!(du, u, p, t)
         0 0 1 0;
         0 0 0 1;
         K₁ 0 0 0;
-        0 K₂ 0 0
+        0 K₁ 0 0
     ]
 
     du .= A * u
@@ -78,7 +78,8 @@ plot!(
     label = "Y"
 )
 
-plot(p1, p2, layout=(1,2))
+p12 = plot(p1, p2, layout=(1,2))
+png(p12, "graph.png")
 
 # The lines used to animate the system above have been commented
 # out to save compute at runtime.
@@ -114,7 +115,7 @@ end
 #println("Animation saved!")
 
 # ---- Inverse Square Central Gravity System ---- #
-
+"""
 function central_gravity!(du, u, p, t)
     x, y, vx, vy = u
 
@@ -163,3 +164,81 @@ scatter!(
 )
 
 plot(p3)
+
+"""
+
+# ---- Generalising the Central Gravity System ---- #
+"""
+function second_order_nonlinear_system!(du, u, p, t)
+    x, y, vx, vy = u
+    kx, ky, n = p
+    # Define System dynamics
+    # Cannot use matrices since this system is non_linear
+
+    dx = vx
+    dy = vy
+
+    dvx = - kx * x^(n-1) * x
+    dvy = - ky * y^(n-1) * y
+
+    du .= [dx, dy, dvx, dvy]
+end
+
+# Define problem parameters
+tspan = (0, 10)
+u₀ = [1, 0, 0, 1]
+
+p = (
+    2,  # kx
+    2,  # ky
+    3,  # n
+)
+
+non_linear_problem = ODEProblem(second_order_nonlinear_system!, u₀, tspan, p)
+solution = solve(non_linear_problem, Tsit5(), saveat=0.01)
+
+# Plot
+p3_5 = plot(
+    solution[1,:],
+    solution[2,:],
+    color=:magenta,
+    grid=true,
+    legend = false,
+    title = "General Non-Linear Second Order System",
+    xlabel = "X",
+    ylabel = "Y",
+    aspect_ratio=:equal,
+)
+
+png(p3_5, "nonLinear_secondOrder.png")
+
+xlims = (minimum(solution[1,:]) - 0.5, maximum(solution[1,:]) + 0.5)
+ylims = (minimum(solution[2,:]) - 0.5, maximum(solution[2,:]) + 0.5)
+
+# Animate solutions
+animation = @animate for i in 1:10:length(solution.t)
+    p4 = plot(
+        solution[1,1:i],
+        solution[2,1:i],
+        color=:cyan,
+        grid = true,
+        legend = false,
+        title = "General Non-Linear Second Order System",
+        xlabel = "X",
+        ylabel = "Y",
+        xlims = xlims,
+        ylims = ylims,
+        aspect_ratio=:equal,
+    )
+
+    plot!(
+        p4,
+        [0],
+        [0],
+        color=:red,
+    )
+end
+
+gif(animation, "nonLinear_secondOrder.gif", fps = 30)
+print("Saved Animation")
+"""
