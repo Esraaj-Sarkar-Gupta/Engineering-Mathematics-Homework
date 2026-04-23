@@ -2010,7 +2010,7 @@ This can be solved analytically, and has been -- as the famous Kepler Problem. H
         \label{fig:keplers-problem}
 \end{figure}
 
-\subsection{General Non-Linear Second Oder Systems}
+\subsection{General Non-Linear Second Order Systems}
 
  The systems thus covered in this section may be generalized with the equation
 
@@ -2018,7 +2018,7 @@ This can be solved analytically, and has been -- as the famous Kepler Problem. H
     \ddot{\vec{r}} = -k r^{n-1} \vec{r}.
 \end{equation}
 
-In the special case where the system initially has no velocity and $k_X = k_y$, one may observe that the system propagates as a straight line.
+In the special case where the system initially has no velocity and $k_X = k_y$, one may observe that the system propagates as a straight line. This can be visualised in Figure \ref{fig:question13_straightlines}.
 
 \begin{figure}[h!]
     \centering
@@ -2055,10 +2055,65 @@ In the special case where the system initially has no velocity and $k_X = k_y$, 
     \end{subfigure}
 
     \caption{Results for any $n$ under the conditions $k_X = k_y$ and $\dot{r} = 0$}
-    \label{fig:placeholder}
+    \label{fig:question13_straightlines}
 \end{figure}
 
+\subsection{Using Root-Finding methods to Indetify Periodic Solutions}
+A solution $u(t)$ is said to be periodic if, for an arbitrary $T$, it satisfies the condition
 
+\begin{equation}
+    u(0) = u(T).
+\end{equation}
+
+One may treat this as a Boundary Value Problem, with the condition that the initial value must be equal to the final value. Formally, this approach is known as the shooting method. The \textit{Flow Map} $\Phi_t(x_0) = x(t)$ is used to define the \textit{Shooting Function} $G(u_0, T)$.
+
+\begin{figure}[htbp]
+    \centering
+
+    % --- Top Row ---
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/periodic_orbit_static2.png}
+        \caption{}
+        \label{fig:top_left}
+    \end{subfigure}
+    \hfill % Pushes the subfigures apart
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/periodic_orbit_static4.png}
+        \caption{}
+        \label{fig:top_right}
+    \end{subfigure}
+
+    \vspace{0.5cm} % Adds vertical space between the rows
+
+    % --- Bottom Row ---
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/periodic_orbit_static5.png}
+        \caption{}
+        \label{fig:bottom_left}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/periodic_orbit_static2.png}
+        \caption{}
+        \label{fig:bottom_right}
+    \end{subfigure}
+
+    \caption{Periodic solutions discovered from stricter tolerances ($10^{-11}$)}
+    \label{fig:main_2x2_matrix}
+\end{figure}
+
+\begin{equation}
+    G(u_0, T) = \Phi(u_0, T) - u_0 = 0
+\end{equation}
+
+However, for autonomous systems (where the rate of change of the system depends entirely on the state and not explicitly on time), translational invariance leads to an underdefined Shootiing Function. To combat this, a Poincare Map is used. The Poincare Map introduces a Constraint Plane $\Sigma$, asserting that the initial state $X_0$ must lie on $\Sigma$.
+
+
+It is observed that the program finds significant fewer solutions when the tolerances of the fifth order solver used to solve for the sysem is lower ($10^{-8}$). The program is allowed to explore more solutions when the tolerances are reduced to the order of $10^{-11}$.
 
 \section{Systems with Periodic Motion}
 
@@ -2171,6 +2226,86 @@ In this system, $\mu$ represents the non-linearity and damping strength. For any
     \includegraphics[width=0.7\textwidth]{question14/vdp.png}
     \caption{Phase portrait of the Van der Pol oscillator ($\mu = 1.5$). The red and blue trajectories represent transient states converging asymptotically to the black limit cycle.}
     \label{fig:vdp-stable}
+\end{figure}
+
+
+\section{Initial Value Problem with Collocation}
+\subsection{Review: Euler's Method}
+
+Given a system
+
+\begin{equation}
+    \ddot{x}(t) = -1 \qquad t \in 0, 1
+\end{equation}
+
+which is reduced to a coupled first order system
+
+\begin{eqnarray}
+    \ddot{x} = \dot{v} = -1 \nonumber \\
+    v = \dot{x}.
+\end{eqnarray}
+
+The initial conditions are assumed to be $x(0) = 0$ and $v(0) = 0.5$.\\
+\\
+The Euler Integration Formula is utilized to solve for this system.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{question15/euler.png}
+    \caption{Euler Integration Solution}
+\end{figure}
+
+It is hypothesised that one may improve the accuracy of the integrator should they use the trapezoidal integrator in place of Euler's integrator.
+
+\begin{equation}
+    z_{n+1} = z_n + h \frac{\dot{z}_n + \dot{z}_{n+1}}{2}
+\end{equation}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width = 0.6\textwidth]{question15/trap_integration.png}
+    \caption{Trapezoid Integration Solution}
+\end{figure}
+
+To confirm the earlier hypothesis, one may observe the error of the solutions against the analytic solution of the system.
+
+\begin{eqnarray}
+    v(t) = \int -1 \; dt = -t + v_0 = -t + 0.5 \nonumber \\
+    x(t) = \int v \; dt = \int (0.5 - t) \; dt = 0.5t - 0.5t^2
+\end{eqnarray}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question15/error_comparison.png}
+        \caption{Error Comparison}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question15/trap_error.png}
+        \caption{RMS Error : Trapezoidal Integration}
+    \end{subfigure}
+    \caption{Integration Errors}
+    \label{fig:lorenz-comparison}
+\end{figure}
+
+It is abundantly clear that the trapezoidal integrator has significantly lesser error that its single-order counterpart.
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question15/error_with_h1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question15/error_with_h2.png}
+    \end{subfigure}
+    \caption{Integration Errors}
+    \label{fig:lorenz-comparison}
 \end{figure}
 
 \end{document}
