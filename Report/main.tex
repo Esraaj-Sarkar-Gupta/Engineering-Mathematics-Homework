@@ -2383,12 +2383,178 @@ function bijection_solve(
 end  
 \end{minted}
 
-The program returns a result of $v(0) = 0.9999$ which may be approximated to $v(0) = 1 $. One may verify this result analytically.
+The program returns a result of $v(0) = 0.500$. One may verify this result analytically.
 
-\begin{figure}
+\begin{figure}[h!]
     \centering
-    \includegraphics[width=0.5\textwidth]{question16/FS_solution.png}
+    \includegraphics[width=0.3\textwidth]{question16/FS_solution.png}
     \caption{Numerical Solution}
 \end{figure}
+
+\section{Introduction to Collocation}
+In this section, the discussion shifts from forward methods (like Euler Integration) and shooting methods to the concept of \textit{collocation}.
+
+\subsection{The Theory}
+A first-order system similar to the system used in the last two questions is used as an example. Between $t_0$ and $t_f$, some $N$ points are chosen uniformly spread apart, essentiially dividing the system into $N+1$ evenly spcaed intervals. A vector $z$ is used to hold all of the $x$ and $v$ values at each interval point.
+
+\begin{equation}
+    z = 
+    \begin{bmatrix}
+    x_1, x_2, x_3, \dots , v_1, v_2, v_3, \dots    
+    \end{bmatrix}
+\end{equation}
+
+From the given boundary conditions, it is known that $x_1 = x_0$ and $x_{N+1} = x_f$. The remaining $N-2$ equations are written out to follow Euler's Method.
+
+\begin{eqnarray}
+    x_{k+1} = x_k + h \cdot v_k \nonumber \\
+    v_{k+1} = v_k + h \cdot a \nonumber \\ \text{where } a = \ddot{x} \text{ is a constant.}
+\end{eqnarray}
+
+This part needs to be completed...
+
+\subsection{Execution}
+\begin{minted}{julia}
+function collocation_solve(N, t_start = 0.0, t_end = 1.0)
+    h = (t_end - t_start) / N
+    num_points = N + 1
+
+    # Extract system acceleration
+    _, a = system!((0,0))
+
+    # Total unknowns
+    total_vars = 2 * num_points
+
+    # Init matrices
+    A = zeros(total_vars, total_vars)
+    b = zeros(total_vars) # Collocation
+
+    # x(1) = 0
+    A[1,1] = 1.0
+    b[1] = 0.0
+
+    # x(N+1) = 0
+    A[2, num_points] = 1.0
+    b[2] = 0.0
+
+    # -- Enforce Euler Discretization -- #
+    row = 3 # 1 and 2 have been used up in the boundary Conditions
+    for k in 1:N
+        # -- Index Helpers -- #
+        idx_xk = k
+        idx_xnext = k + 1
+        idx_vk = num_points + k
+        idx_vnext = num_points + k + 1
+
+        # -- Populate Matrices -- #
+        # Rule: x_{k+1} - x_k - h*v_k = 0
+        A[row, idx_xnext] = 1.0
+        A[row, idx_xk] = -1.0
+        A[row, idx_vk] = -h
+        b[row] = 0.0
+        row += 1
+        # Rule: v_{k+1} - v_k = a*h
+        A[row, idx_vnext] = 1.0
+        A[row, idx_vk] = -1.0
+        b[row] = a*h
+
+        row += 1
+    end
+    # --- Solve for the Linear System Az = b ---- #
+    z = A \ b
+    # ---- Upack Solution ---- #
+    x_sol = z[1:num_points]
+    v_sol = z[num_points+1:end]
+    time_array = range(t_start, t_end, length = num_points)
+
+    return time_array, x_sol, v_sol
+end
+\end{minted}
+
+\begin{figure}[htbp]
+    \centering
+    
+    % --- Row 1 ---
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/collocationxt_4.png}
+        \caption{}
+        \label{fig:row1_left}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/collocation_4.png}
+        \caption{}
+        \label{fig:row1_right}
+    \end{subfigure}
+
+    \vspace{1em} % Space between rows
+
+    % --- Row 2 ---
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/collocationxt_100.png}
+        \caption{}
+        \label{fig:row2_left}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/collocation_100.png}
+        \caption{}
+        \label{fig:row2_right}
+    \end{subfigure}
+
+    \vspace{1em} % Space between rows
+
+    % --- Row 3 ---
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/collocationxt_1000.png}
+        \caption{}
+        \label{fig:row3_left}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/collocation_1000.png}
+        \caption{}
+        \label{fig:row3_right}
+    \end{subfigure}
+
+    \caption{Collocation Results}
+    \label{fig:six_panel_grid}
+\end{figure}
+
+\newpage 
+
+\subsection{Comparing Results to the Shooting Method}
+
+Both methods utilize the same Euler discretization. Any residual between the two methods should be driven primarily by the tolerance in the Bisection Method.
+
+\begin{figure}[htbp]
+    \centering
+    % First Image (Left)
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/compare_to_shooting.png}
+        \caption{}
+        \label{fig:left_image}
+    \end{subfigure}
+    \hfill % This is the magic that pushes them to the margins
+    % Second Image (Right)
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{question17/compare_residual.png}
+        \caption{}
+        \label{fig:right_image}
+    \end{subfigure}
+
+    \caption{Comparing Collocation to the Shooting Method Results}
+    \label{fig:side_by_side_comparison}
+\end{figure}
+
+The maximum residue observed here was $\delta = 4.88 \times 10^{-6}$ --- negligible. This is while the Bisection Method has \texttt{tol} = $10^{-5}$.
 
 \end{document}
