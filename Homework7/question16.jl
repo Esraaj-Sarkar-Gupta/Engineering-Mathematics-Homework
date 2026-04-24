@@ -46,7 +46,7 @@ function shooting_function(s)
         state = trapezoid_integration(state, time_step)
     end
 
-    return state[2] - xend # Return F(s) = x(end_time; s) - x(T)
+    return state[1] - xend # Return F(s) = x(end_time; s) - x(T)
 end
 
 # ---- Run Iterations of F vs s ---- #
