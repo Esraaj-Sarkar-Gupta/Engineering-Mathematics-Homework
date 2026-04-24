@@ -807,8 +807,8 @@ which gives us a log-log expression of
     \log(\text{error}) = 2 \log\bigg(\frac{h}{6}\bigg) + \log(C_2).
 \end{equation}
 
-The accuracy of a 16-bit computer is bound by \textit{machine epsilon} $\epsilon_m \approx 10^{-16}$. As $h$ is decreased to the same order of $\epsilon_m$, we see that $f(x) \approx f(x+h) \approx f(x-h)$. Subtracting nearly identical numbers on a computer results in a phenomenon known as \textit{catastrophic subtraction}, where only the roundoff noise remains and is stored as the result of the computation.
-
+The accuracy of a 16-bit computer is bound by \textit{machine epsilon} $\epsilon_m \approx 10^{-16}$. As $h$ is decreased to the same order of $\epsilon_m$, we see that $f(x) \approx f(x+h) \approx f(x-h)$. Subtracting nearly identical numbers on a computer results in a phenomenon known as \textit{catastrophic subtraction}, where only the roundoff noise remains and is stored as the result of the computation.\\
+\\
 Here the roundoff error is given by the following expression since in both cases, the result of the catastrophic subtraction is divided by $h$.
 \begin{equation}
     E_\text{rf} \approx \frac{\epsilon_m}{h}
@@ -1886,6 +1886,7 @@ $\alpha = 0$ & $\beta \neq 0$ & Center & Marginally Stable \\ \hline
 \label{tab:eigenvalue_classification}
 \end{table}
 
+\newpage
 \begin{minted}{julia}
 
 # ---- Linearization about Fixed Points ---- #
@@ -2255,6 +2256,9 @@ The Euler Integration Formula is utilized to solve for this system.
     \caption{Euler Integration Solution}
 \end{figure}
 
+
+\subsection{Trapezoidal Intgration}
+
 It is hypothesised that one may improve the accuracy of the integrator should they use the trapezoidal integrator in place of Euler's integrator.
 
 \begin{equation}
@@ -2306,6 +2310,85 @@ It is abundantly clear that the trapezoidal integrator has significantly lesser 
     \end{subfigure}
     \caption{Integration Errors}
     \label{fig:lorenz-comparison}
+\end{figure}
+
+\section{Boundary Value Problems and The Shooting Method}
+
+Consider a Boundary Value Problem
+
+\begin{eqnarray}
+    \ddot{x}(t) = -1 \nonumber \\
+    x(0) = 0, \quad x(1) = 0. \\
+\end{eqnarray}
+
+In order to solve this problem, first one must define a shooting function $F$.
+
+\begin{equation}
+    F(s) = x(t = 1; s)
+\end{equation}
+
+for some value $s$. In other words, $x(1;s) = x(t = 1)$ given that $\dot{x}(0) = s$. To visualize this, one may plot a $F(s)$ vs $s$ graph.\\
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{question16/F_vs_s_plot.png}
+    \caption{$F$ vs $s$ Plot}
+\end{figure}
+
+One may solve for the residual of the shooting function and required final value of $x$ using a numerical root-finding method to determine a suitable value for $s$. Here, the \textit{bijection method} is used. An example program in julia is given below.
+\newpage
+
+\begin{minted}{julia}
+function bijection_solve(
+    func,
+    a,
+    b,
+    tol = 1e-5,
+    max_iter = 1e+5
+)
+    fa = func(a)
+    fb = func(b)
+
+    # NOTE: f(a) and f(b) must have different signs in order for the method to work
+    # Check for the above Conditions
+
+    if (fa * fb > 0)
+        return true  # Return true :: Error flag = 1
+    end
+
+    # Init midpoint
+    c = a
+    
+    for i in 1:max_iter
+        c = (a+b)/2
+        fc = func(c)
+
+        if (abs(fc) < tol) || ((b - a) / 2 < tol)
+            return c
+        end
+
+        # Check for sign changes
+        if (fa * fc < 0)
+            # Discard right hand side
+            fb = fc 
+            b = c
+        elseif (fb * fc < 0)
+            # Discard left hand side
+            fa = fc 
+            a = c
+        end
+    end
+
+    return c
+end  
+\end{minted}
+
+The program returns a result of $v(0) = 0.9999$ which may be approximated to $v(0) = 1 $. One may verify this result analytically.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{question16/FS_solution.png}
+    \caption{Numerical Solution}
 \end{figure}
 
 \end{document}
