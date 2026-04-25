@@ -2557,4 +2557,143 @@ Both methods utilize the same Euler discretization. Any residual between the two
 
 The maximum residue observed here was $\delta = 4.88 \times 10^{-6}$ --- negligible. This is while the Bisection Method has \texttt{tol} = $10^{-5}$.
 
+\section{Optimal Control : Euler Integration}
+
+The objective of this problem is to find the optimal control force $u(t)$ that moves a unit mass ($m=1$) from rest at the origin to a target position at rest, while minimizing the total energy expended. The system dynamics are governed by the differential equations:
+\begin{align}
+    \dot{x}(t) &= v(t) \\
+    \dot{v}(t) &= u(t)
+\end{align}
+with the boundary conditions defined as starting at rest ($x(0)=0, v(0)=0$) and ending at rest at the target position one second later ($x(1)=1, v(1)=0$).\\
+\\
+The continuous objective function to minimize the energy of the system that is directly propotionate to $J$ given as
+\begin{equation}
+    J = \int_{0}^{1} u(t)^2 \, dt .
+\end{equation}
+
+To solve this continuous Boundary Value Problem (BVP) numerically, it is converted into a discrete optimization problem using the collocation method. The time domain $t \in [0, 1]$ is divided into $N$ equal intervals of step size $h = 1/N$.
+
+The integral objective function is approximated as a discrete sum:
+\begin{equation}
+    \min_{x, v, u} \sum_{k=1}^{N} h \cdot u_k^2
+\end{equation}
+
+The continuous system dynamics are enforced as algebraic constraints at every time step using forward Euler discretization. For $k = 1, 2, \dots, N$:
+\begin{align}
+    x_{k+1} - x_k - h \cdot v_k &= 0 \\
+    v_{k+1} - v_k - h \cdot u_k &= 0
+\end{align}
+
+This formulation transforms the differential equations into a constrained quadratic programming problem. The system was implemented in Julia using the \texttt{JuMP.jl} modeling language and solved via the \texttt{Ipopt} interior-point optimizer, effectively mirroring the functionality of MATLAB's \texttt{fmincon}.
+
+\begin{minted}{julia}
+using JuMP
+using Ipopt
+
+function optimize_trajectory(
+    N;
+    method = :euler
+)
+    t_start, t_end = t_span
+    h = (t_end - t_start) / N
+
+    # Initialize the Optimization Model
+    model = Model(Ipopt.Optimizer)
+    set_silent(model) # Shush
+
+    # Define unknowns
+    @variables(model, begin
+        x[1:N+1]
+        v[1:N+1]
+        u[1:N+1]
+    end)
+
+    # Define Objective
+    @objective(
+        model,
+        Min,
+        sum(u[k]^2 * h for k in 1:N) # Minimize Energy
+    )
+
+    # -- Enforce Constraints -- #
+
+    # Boundary
+    @constraint(model, x[1] == x_span[1])
+    @constraint(model, x[N+1] == x_span[2])
+    
+    @constraint(model, v[1] == v_span[1])
+    @constraint(model, v[N+1] == v_span[2])
+
+    # Physics
+    if method == :euler
+        for k in 1:N
+            @constraint(model, x[k+1] == x[k] + h * v[k])
+            @constraint(model, v[k+1] == v[k] + h * u[k])
+        end
+    elseif method == :trapezoid
+        for k in 1:N
+            @constraint(model, x[k+1] == x[k] + h/2 * (v[k] + v[k+1]))
+            @constraint(model, v[k+1] == v[k] + h/2 * (u[k] + u[k+1]))
+        end
+    else
+        error("Unrecognized integration method. Use :euler or :trapezoid")
+    end
+
+    # Solver
+    optimize!(model) # Yay
+
+    time_array = range(t_span[1], t_span[2], length = N+1)
+
+    return time_array, value.(x), value.(v), value.(u)
+end
+\end{minted}
+
+Figure \ref{fig:optimal_euler} displays the resulting state trajectories $x(t)$ and $v(t)$ alongside the optimal control sequence $u(t)$ for $N=50$ intervals. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{question18/plot_euler.png}
+    \caption{Optimal control trajectory using Euler discretization ($N=50$). Notice the slight asymmetry in the control force $u(t)$ resulting from the first-order temporal lag inherent to the Euler method.}
+    \label{fig:optimal_euler}
+\end{figure}
+
+\section{Optimal Control : Trapezoid Integration}
+
+In the previous section, an optimal control problem was solved using Euler Discretization. The same problem is solved using Trapezoidal Discretization in this section.
+
+\begin{minted}{julia}
+if method == :euler
+        for k in 1:N
+            @constraint(model, x[k+1] == x[k] + h * v[k])
+            @constraint(model, v[k+1] == v[k] + h * u[k])
+        end
+    elseif method == :trapezoid
+        for k in 1:N
+            @constraint(model, x[k+1] == x[k] + h/2 * (v[k] + v[k+1]))
+            @constraint(model, v[k+1] == v[k] + h/2 * (u[k] + u[k+1]))
+        end
+    else
+        error("Unrecognized integration method. Use :euler or :trapezoid")
+    end
+\end{minted}
+
+\begin{figure}[!h]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question18/plot_trapezoid.png}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question18/compare.png}
+    \end{subfigure}
+
+    \caption{Trapezoidal Integration Collocation Results}
+\end{figure}
+
+It is evident that there are obvious differences between the trajectories optimized using Euler Discretization and Trapezoidal Discretization.
+
+\section{}
+
 \end{document}
