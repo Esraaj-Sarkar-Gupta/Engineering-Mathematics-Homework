@@ -49,7 +49,7 @@ function optimize_trajectory(
     @objective(
         model,
         Min,
-        sum(u[k]^2 * h for k in 1:N) # Minimize Energy
+        sum(u[k]^2 * h for k in 1:N+1) # Minimize Energy
     )
 
     # -- Enforce Constraints -- #
