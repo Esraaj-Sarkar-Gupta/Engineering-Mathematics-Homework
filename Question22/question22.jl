@@ -1,4 +1,4 @@
-# ===== Engineering Mathematics -- Question 21 ===== #
+# ===== Engineering Mathematics -- Question 22 ===== #
 # Author: Esraaj Sarkar Gupta
 # Date: 2nd May, 2026
 
