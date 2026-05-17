@@ -52,8 +52,8 @@ function optimize_trajectory(
             vx[1:N+1]
             vz[1:N+1]
 
-            ux[1:N]
-            uz[1:N]
+            ux[1:N+1]
+            uz[1:N+1]
         end)
         
         for k in 1:N
@@ -93,7 +93,7 @@ function optimize_trajectory(
         model,
         Min,
         sum(
-            sqrt(ux[k]^2 + uz[k]^2 + 1e-6) * h for k in 1:N # + ϵ to prevent NaN errors from the numerical derivative
+            sqrt(ux[k]^2 + uz[k]^2 + 1e-6) * h for k in 1:N+1
         )
     )
 
@@ -113,12 +113,17 @@ function optimize_trajectory(
     # State Constraint
     @constraint(model, Xz .>= 0)
 
-    # Energy Constraint
-
+    # Energy Constraint: ux^2 + uz^2 <= u_max^2
+    @constraint(model, [k=1:length(ux)], ux[k]^2 + uz[k]^2 <= u_max^2)
 
     optimize!(model)
 
-    time_array = range(t_start, t_end, length = N+1)
+    if (method == :euler)
+        time_array = range(t_start, t_end, length = N+1)
+    elseif (method == :trapezoid)
+        time_array = range(t_start, t_end, length = N+1)
+    end
+
     return time_array, value.(Xx), value.(Xz), value.(vx), value.(vz), value.(ux), value.(uz)
 end
 
@@ -142,10 +147,16 @@ t, xx, xz, vx, vz, ux, uz = optimize_trajectory(
 )
 
 # ---- Plotting ---- #
+thrust_mag = sqrt.(ux.^2 + uz.^2)
+
 p1 = plot(xx, xz, label=string(method), title="Trajectory (X vs Z)", xlabel="X [m]", ylabel="Z [m]", lw=2)
 p2 = plot(t, xx, label=string(method), title="Trajectory (X vs t)", xlabel="t [s]", ylabel="X [m]", lw=2)
 p3 = plot(t, xz, label=string(method), title="Trajectory (Z vs t)", xlabel="t [s]", ylabel="Z [m]", lw=2)
 
-final_plot = plot(p1, p2, p3, layout = (3,1), size = (1000, 500))
+p4 = plot(t, ux, label="u_x", lw=2, title="Control Inputs vs Time", xlabel="t [s]", ylabel="Acceleration [m/s²]")
+plot!(p4, t, uz, label="u_z", lw=2)
+plot!(p4, t, thrust_mag, label="|u| (Total)", lw=2, linestyle=:dash, color=:black)
+
+final_plot = plot(p1, p2, p3, p4, layout = (2, 2), size = (1000, 800))
 
 display(final_plot)
