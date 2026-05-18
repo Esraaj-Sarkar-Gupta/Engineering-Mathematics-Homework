@@ -11,7 +11,7 @@ using Plots
 
 # ---- Fundamental Natural Constants ---- #
 
-g = 9.810 * 0
+g = 9.810
 
 # ---- Fundamental System Parameters ---- #
 
@@ -133,7 +133,7 @@ params = fparameters(
 )
 
 # Initial Conditions
-u0 = [9.0, 11.0, 0.0, 0.0] 
+u0 = [9.0, 7.0, 0.0, 0.0] 
 
 # Time Span
 tspan = (0.0, 20.0)

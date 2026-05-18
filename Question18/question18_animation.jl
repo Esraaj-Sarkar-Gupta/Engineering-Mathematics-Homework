@@ -1,7 +1,6 @@
-#
 # ===== Engineering Mathematics -- Homework 7 ===== #
 # Author: Esraaj Sarkar Gupta
-# Dtae: 25th April, 2026
+# Date: 25th April, 2026
 
 # Optimal Control
 
@@ -48,13 +47,6 @@ function optimize_trajectory(
         u[1:N+1]
     end)
 
-    # Define Objective
-    @objective(
-        model,
-        Min,
-        sum(u[k]^2 * h for k in 1:N) # Minimize Energy
-    )
-
     # -- Enforce Constraints -- #
 
     # Boundary
@@ -70,11 +62,28 @@ function optimize_trajectory(
             @constraint(model, x[k+1] == x[k] + h * v[k])
             @constraint(model, v[k+1] == v[k] + h * u[k])
         end
+
+        # Constrain ghost variable
+        @constraint(model, u[N+1] == u[N])
+
+        @objective(
+            model,
+            Min,
+            sum(u[k]^2 * h for k in 1:N)
+        )
+
     elseif method == :trapezoid
         for k in 1:N
             @constraint(model, x[k+1] == x[k] + h/2 * (v[k] + v[k+1]))
             @constraint(model, v[k+1] == v[k] + h/2 * (u[k] + u[k+1]))
         end
+
+        @objective(
+            model,
+            Min,
+            sum(u[k]^2 * h for k in 1:N+1) - 
+            (u[1]^2 * h + u[N+1]^2 * h)/2 # Minimize Energy
+        )
     else
         error("Unrecognized integration method. Use :euler or :trapezoid")
     end
