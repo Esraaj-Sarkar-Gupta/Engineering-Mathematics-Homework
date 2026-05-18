@@ -79,8 +79,8 @@ scatter!(
 
 display(F_vs_s_plot)
 
-# ---- Define Bijection Root-Finder ---- #
-function bijection_solve(
+# ---- Define bisection Root-Finder ---- #
+function bisection_solve(
     func,
     a,
     b,
@@ -127,7 +127,7 @@ end
 
 # Wrap the shooting function with the root Finder
 
-result = bijection_solve(
+result = bisection_solve(
     shooting_function,
     -100,
     100,
