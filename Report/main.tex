@@ -11,12 +11,52 @@
 \usepackage{listings}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{hyperref}
+
+% Link styling
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={Engineering Mathematics Homework},
+}
+
 \usepackage{cleveref}
-\usepackage{mdframed}
 
 
 \geometry{margin=1in}
 \setlength{\parindent}{0pt}
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+% Define your custom color palette
+\definecolor{modalBg}{HTML}{F3F4F6}     % Light gray background
+\definecolor{modalText}{HTML}{1E3A8A}   % Dark blue text
+\definecolor{modalBorder}{HTML}{D1D5DB} % Soft gray border
+
+% Define a global style for the modal
+\mdfdefinestyle{modalStyle}{
+    backgroundcolor=modalBg,
+    linecolor=modalBorder,
+    linewidth=1pt,
+    roundcorner=6pt,         % Defines the arc of the rounded corners
+    font=\color{modalText},  % Forces all text inside the box to be dark blue
+    %
+    % Inner Padding (Spacing around the text inside the box)
+    innertopmargin=12pt,
+    innerbottommargin=12pt,
+    innerleftmargin=15pt,
+    innerrightmargin=15pt,
+    %
+    % Outer Margin / Sizing (To make it look like a centered modal)
+    leftmargin=0.1\textwidth,
+    rightmargin=0.1\textwidth,
+    needspace=2cm            % Keeps the box from leaving orphan headings at page bottoms
+}
+
+%\begin{mdframed}[style=modalStyle]\end{mdframed}
 
 \usepackage{fontspec}
 \setmonofont{DejaVu Sans Mono}[Scale=0.9]
@@ -101,12 +141,41 @@
 
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    
+    % Course Name / Title
+    {\Huge \textbf{Robot Motion Simulation and Optimization -- RO3103} \par}
+    \vspace{2cm}
+    
+    % Author Name
+    {\Large Esraaj Sarkar Gupta \par}
+    \vspace{0.5cm}
+    
+    % University Name
+    {\large Plaksha University \par}
+    \vspace{2cm}
+    
+    % Date
+    {\large May 18, 2026 \par}
+    
+    \vfill
+    
+    % GitHub Link Placeholder
+    {\large \textbf{Homework Source Code:}\\
+    \vspace{0.2cm}
+    \url{https://github.com/Esraaj-Sarkar-Gupta/Robot-Motion-Simulation-and-Optimization} \par}
+    
+    \vspace{2cm}
+\end{titlepage}
 
 \section{Syntactic Introduction}
+
 I have attempted and successfully completed exercises from Getting Started with Matlab by Rudra Pratap. I am now familiar with the basics of Matlab syntax.
 
 \section{Numerical Differentiation -- Forward Difference Method}
+
 
 The analytic solution of the differential of $\sin(x)$
 \begin{equation}
@@ -220,6 +289,7 @@ Best h from sweep is 7.56463e-09 with error 1.03059e-09
 \end{figure}
 
 \section{Estimating the True Error Without an Analytical Solution}
+
 Estimating errors in numerical ODE solving (Euler's Method) and the relation so step size. This can be done without knowing the exact analytical solution. We know that
 
 \begin{equation}
@@ -315,19 +385,6 @@ legend('|x_h(T) - x_{exact}(T)|', '|x_h(T) - x_{h/2}(T)|', '2|x_h(T) - x_{h/2}(T
        'Location','best');
 shg
 
-%{
-Observations:
-One may estimate the true error of a system using this method of comparing
-the difference between the results of consecutive step sizes.
-
-This is possible since error is directly propotionate to the step size --
-euler is linear.
-
-x_h(T) - x_h/2 = Ch - Ch/2 + O(h^2) + ... (we ignore non-linear terms).
-Thus, the estimated error is offset by some constant from the true error by
-a linear approximation.
-%}
-
 % -- Local Functions -- %
 
 function dX = f(X, p)
@@ -361,7 +418,12 @@ end
 
 \section{Solving ODEs using Euler's Method}
 
-We find the solution to the ordinary differential equation $\dot{X} = pX$ for some arbitrary parameter $p \in \mathbb{R}$.
+We find the solution to the ordinary differential equation $\dot{X} = pX$ for some arbitrary parameter $p \in \mathbb{R}$.\\
+\\
+The system $\dot{X} = -X$ is considered here. The step size $h$ and max time $T$ are passed to the solver as hyperparameters, along with the system's inital state \texttt{X0}.\\
+\\
+The number of iterations that the solver takes is calculated as
+$N = \texttt{round}(T/h)$. 
 
 \begin{lstlisting}
 % ===== Engineering Mathematics -- Homework 1 ===== %
@@ -412,8 +474,9 @@ end
 \end{figure}
 
 \section{The Motion of a Double Pendulum}
-The system consists of a double pendulum modeled with two point masses ($m_1, m_2$) and two linkages ($R, \delta$). This setup represents a coupled, non-linear dynamical system where the motion of the secondary mass is governed by both gravitational potential and the inertial torque transmitted through the primary linkage, leading to characteristic chaotic behavior.
 
+The system consists of a double pendulum modeled with two point masses ($m_1, m_2$) and two linkages ($R, \delta$). This setup represents a coupled, non-linear dynamical system where the motion of the secondary mass is governed by both gravitational potential and the inertial torque transmitted through the primary linkage, leading to characteristic chaotic behavior.\\
+\\
 The dynamics were derived via Lagrangian Mechanics. To simplify the implementation, the system is expressed using the following geometric and inertial constants:
 
 \begin{align*}
@@ -591,8 +654,9 @@ The simulation yields several key insights into the nature of coupled oscillatio
 
 
 \section{Central Difference Differentiation -- RK2}
-This analysis explores the numerical approximation of the derivative of $f(x) = \sin(x)$. By comparing the Forward Difference and Central Difference methods across a logarithmic range of step sizes ($10^{-2}$ to $10^{-16}$), we characterize the transition from discretization-limited regimes to precision-limited regimes.
 
+This analysis explores the numerical approximation of the derivative of $f(x) = \sin(x)$. By comparing the Forward Difference and Central Difference methods across a logarithmic range of step sizes ($10^{-2}$ to $10^{-16}$), we characterize the transition from discretization-limited regimes to precision-limited regimes.\\
+\\
 The Central Difference method is a second-order approximation derived from the Taylor series expansion. The formula used for evaluation is:
 
 \begin{equation}
@@ -625,19 +689,11 @@ f = @(x) sin(x);
 df = @(x) cos(x);
 
 % ---- Numerical Evaluation -- Central Difference Method ---- %
-%{
-    delta_f(x) ~ f(x + h) - f(x-h) / 2h
-%}
+
+% delta_f(x) ~ f(x + h) - f(x-h) / 2h
+
 
 X0  = 1.0;
-%{
-    The point 0 is particularly bad for this analysis since
-    sin(h) - sin(-h) ~ 2h.
-
-    Since the program returns a 0, and thus error = 0 - 0, the plot
-    attempts to plot log(0 - 0 = 0), which is undefined and thus it cannot
-    plot.
-%}
 
 % -- List of h values -- %
 h_values = logspace(-2, -16, 100);
@@ -684,23 +740,6 @@ end
 function delta_f = forward_difference(f, x, h)
     delta_f = ( f(x + h) - f(x) ) ./ h;
 end
-
-
-%{
-    OBSERVATIONS:
-        > Optimal h for central diff is much larger (~ x100) than forward
-        diff. However the abs error for central diff is much lower.
-
-        > The linear parts of the graph make it clear that the slope of the
-        central diff curve is greater than the forward diff graph. This
-        observation agrees with what one would expect from the mathematical
-        expressions of both these numerical methods.
-
-        > We see that the error of the central difference method decreases
-        with h^2. We may also show this to be true using the Taylor
-        expansion of the series.
-%}
-
 
 %% Part B -- Solving ODEs using the Midpoint Method %%
 
@@ -1006,7 +1045,6 @@ function [t, S] = RK2(f, tspan, S0, h)
     end
 end
 
-%% Part C -- Checking the Numerical Solutions
 %}
 
 \end{lstlisting}
@@ -1253,7 +1291,14 @@ plot(tolerances, errors,
     \item \textbf{Convergence:} The error at t=2 was evaluated against varying tolerances. The resulting log-log plot demonstrates that as the local error tolerances (abstol,reltol) are tightened, the global error decreases linearly on a logarithmic scale, confirming the stability and consistency of the solver.
 \end{itemize}
 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{question8/error_tol.png}
+    \caption{}
+\end{figure}
+
 \section{Statics vs Dynamics of a Spring-Damper Mass System}
+
 he system consists of a point mass $m$ located at position $\vec{r}_C = [x, y]^\top$. 
 Gravity $g$ acts in the downward direction, denoted as $-g\hat{j}$. 
 
@@ -1294,49 +1339,6 @@ In the static limit, this equation simplifies to
 \end{equation}
 
 \begin{minted}{julia}
-# ===== Engineering Mathematics -- Homework 3, Question 9 ===== #
-# Author: Esraaj Sarkar Gupta
-# Date: 15th February, 2026
-
-using DifferentialEquations
-using LinearAlgebra
-using Plots
-using NLsolve
-
-# ---- Fundamental System Parameters ---- #
-
-g = 9.810
-
-# ---- Fundamental System Parameters ---- #
-
-struct fparameters
-    m  :: Float64
-    rₐ :: Vector{Float64}
-    rᵦ :: Vector{Float64}
-
-    Lₐ :: Float64 
-    Lᵦ :: Float64 
-    
-    kₐ :: Float64
-    kᵦ :: Float64
-
-    cₐ :: Float64
-    cᵦ :: Float64
-
-    c_d :: Float64
-end
-
-# ---- Derived System Parameters ---- #
-
-struct dparameters
-    lₐ :: Float64
-    lᵦ :: Float64
-
-    a :: Vector{Float64}
-    b :: Vector{Float64}
-
-end
-
 function get_dparameters(sys::fparameters, r_c::Vector{Float64})
     a_vec = sys.rₐ - r_c
     b_vec = sys.rᵦ - r_c
@@ -1407,20 +1409,6 @@ function spring_damper_mass_system!(du, u, p, t)
     du[3:4] = accel  # dv/dt = F/m
 
 end
-# ---- Solving the Unremarkable System ---- #
-
-params = fparameters(
-    5.0,          # Mass (kg)
-    [2.0, 10.0],  # Anchor A
-    [10.0, 10.0], # Anchor B
-    5.0,          # Rest Length A
-    5.0,          # Rest Length B
-    10.0,         # k_A
-    20.0,         # k_B
-    10.0,          # c_A
-    1.0,          # c_B
-    0.5           # c_d (Air Drag)
-)
 
 # Initial Conditions
 u0 = [5.0, 0.0, 0.0, 2.0] 
@@ -1436,12 +1424,6 @@ phase_space = plot(sol, idxs=(1,2),
      xlabel="x position (m)", 
      ylabel="y position (m)", 
      label="Path", lw=2, aspect_ratio=:equal)
-
-# Add anchors to the plot for context
-scatter!(phase_space, [params.rₐ[1], params.rᵦ[1]], [params.rₐ[2], params.rᵦ[2]], 
-         label="Anchors", markersize=8, color=:red)
-
-display(phase_space)
 
 # ---- Solving for a Static System ---- #
 
@@ -1491,33 +1473,8 @@ for i in 1:num_samples
     end
 end
 
-println("Generated $(length(solutions_x)) clustered equilibrium points.")
-# ---- Plot Results ---- #
-
-# Add the anchors to the plot
-static_solutions = scatter(
-         [params.rₐ[1], params.rᵦ[1]], 
-         [params.rₐ[2], params.rᵦ[2]], 
-         label="Anchors A & B", 
-         color=:red, 
-         markersize=6, 
-         markerstrokewidth=2)
-
-scatter!(static_solutions,
-        solutions_x, solutions_y, 
-        label="Equilibrium Points",
-        size=(500,500),
-        markersize=3,
-        color=:blue,
-        title="Static Equilibrium Positions", 
-        xlabel="X Coordinate", 
-        ylabel="Y Coordinate",
-        aspect_ratio=:equal)
-
-display(static_solutions)
 
 # ---- Custom Steady State Clustering Algorithm ---- #
-
 # Combine points for easier handling
 points = tuple.(solutions_x, solutions_y)
 
@@ -1550,7 +1507,6 @@ end
 centroids_x = Float64[]
 centroids_y = Float64[]
 
-println("\n--- Final Steady State Regions ---")
 for (class_seed, cluster_points) in clusters
     if !isempty(cluster_points)
         # Calculate mean of X and Y
@@ -1563,42 +1519,6 @@ for (class_seed, cluster_points) in clusters
         println("Region Centroid: (X: $(round(cx, digits=4)), Y: $(round(cy, digits=4)))")
     end
 end
-
-final_solutions_plot = scatter(solutions_x, solutions_y, 
-        label="Raw Iterations",
-        size=(600, 500),
-        markersize=1,
-        markeralpha=0.3,
-        markerstrokewidth=0,
-        color=:blue,
-        title="Final Steady State Regions & Centroids", 
-        xlabel="X Coordinate", 
-        ylabel="Y Coordinate",
-        aspect_ratio=:equal
-)
-
-# Anchors for Context
-scatter!(final_solutions_plot,
-         [params.rₐ[1], params.rᵦ[1]], 
-         [params.rₐ[2], params.rᵦ[2]], 
-         label="Anchors A & B", 
-         color=:red, 
-         markersize=6, 
-         markerstrokewidth=2
-)
-
-# Final Centroids
-scatter!(final_solutions_plot,
-         centroids_x, centroids_y,
-         label="Steady State Centroids",
-         color=:gold,
-         markersize=8,
-         markerstrokecolor=:black,
-         markerstrokewidth=1.5,
-         shape=:star
-)
-
-display(final_solutions_plot)
 \end{minted}
 
 Solving for this system using a 5th order solver (TSit), one may observe obvious signs of a chaotic system
@@ -1682,6 +1602,7 @@ In the system simulate here, three distinct fixed points were discovered. The sy
 \end{figure}
 
 \section{Linear Ordinary Differential Equations}
+
 It is useful to consider the solution to any linear ODE to be of the form $x(t) = Ce^{\lambda t}$ where $\lambda \in \mathbb{C}$. The general solution of linear ODEs is given as a linear combination of any solutions to the same ODE. Given a coupled system of linear differential equations
 
 \begin{equation}
@@ -1743,6 +1664,7 @@ this analytical solution to compared to the solution obtained from a 5$^\text{th
 \end{figure}
 
 \section{Revisiting the Spring-Mass Damper System -- Analysis of Linear Stability}
+
 The animation of the dynamics of the system is improved. Damped springs are animated (with great difficulty). The system is simulated with various parameters and various initial conditions.
 
 \begin{figure}[h!]
@@ -1801,7 +1723,7 @@ end
     \begin{subfigure}[b]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{question11/compression_linear.png}
-        \caption{Add your linear compression caption here}
+        \caption{System linearized about the fixed point.}
         \label{fig:compression_linear}
     \end{subfigure}
     
@@ -1813,6 +1735,8 @@ end
     \textbf{Careless Programming:}\\
     While carrying out the analysis of equilibria near the anchors, a critical zero-division bug in the code defining the system is identified. Specifically in the lines \texttt{hat\_A = vec\_to\_A / dist\_A} and \texttt{hat\_B = vec\_to\_B /dist\_B}. If the object happens to be placed at the same point as one of the anchors, the corresponding distances vanish. This error is fixed by introducing a small term $\epsilon = 10^{-6}$ in the denominators.
 \end{mdframed}
+
+\subsection{Why do fixed points show up frequently near anchors?}
 
 One may assert that the neighborhoods of the anchors generally present more fixed points. The rationale for this assertion is as follows. Springs generate the largest compressive force possible at their respective anchors, and with a expansion vector with an undefined direction $\hat\delta = \frac{\vec\delta}{0}$, the repulsive spring force is awarded an extra degree of freedom , allowing it to point in any direction. This extra degree of freedom makes these points more likely to be equilibria, although always unstable. Examples of this phenomenon are demonstrated in Fig. \ref{fig:equilibria_on_anchors}.\\
 
@@ -1841,7 +1765,7 @@ where $\theta$ can be anything (extra degree of freedom). $\delta_A$ is arbitrar
         \label{fig:equilibria_on_anchors}
 \end{figure}
 
-\textbf{Linearization}\\
+\subsection{Linearization}
 One may use the Jacobian of a system to linearize it about a point. Here the system is linearized about identified stable and unstable fixed points. The nature of fixed points may be determined by analyzing the eigenvalues of the Jacobian matrix at the fixed point.
 
 \begin{equation}
@@ -1955,7 +1879,129 @@ This equation lacks the non linear term $|l_i| = \sqrt{x_i^2 + y_i^2}$, thus lin
 
 \section{Introducing Optimization}
 
+In this problem, numerical optimization is introduced. The surface used here is 
+
+\begin{equation}
+    z = (x(x-y))^2 - \exp(-x^2-y^2) - cos(x) \label{intro-optimization-surface}
+\end{equation}
+
+subject to the constraints
+
+\begin{eqnarray}
+    x + y + \frac{z}{3} = 0 \label{intro-opti-constraint1} \\
+    x^2 + y^2 + z^2 = 0. \label{3d_unit_circle-constraint}
+\end{eqnarray}
+
+The benchmark optimum is (apparently)  $(x, y, z) \approx (0.236, 0.364, −1.800)$.
+
+\subsection{Grid Search}
+The most primitive approach to this problem is to use a grid search and iteratively compute the value of $z$ at every point on the surface and pick the point with the lowest value.
+
+\begin{minted}{julia}
+function run_grid_search()
+    step = 0.0001
+    tol  = 0.001
+
+    X_best = (0.0, 0.0)
+    z_min = Inf64
+
+    # Range limits
+    r = 1.0
+    x_range = -r:step:r
+    y_range = -r:step:r
+
+    # ---- Begin Grid Search ---- #
+    for x in x_range
+        for y in y_range
+
+            if (x^2 + y^2) > r^2
+                continue
+            end
+
+            z_surface = z(x,y)
+            z_plane = p(x,y)
+
+            if abs(z_plane - z_surface) < tol
+                if z_plane < z_min
+                    z_min = z_plane
+                    X_best = (x,y)
+                end
+            end
+        end
+    end
+    return X_best, z_min
+end
+\end{minted}
+
+Running the grid search results in a computed minimum of $ (x, y, z) \approx (0.229, 0.371, -1.801)$.
+
+\subsection{Solving Libraries -- Ipopt}
+Instead of using a crude grid-search, one may use a large-scale non-linear optimization library such as \texttt{Ipopt} that is available as a Julia package. \texttt{Ipopt} can be used alongside \textit{Julia for Mathematical Programming} \texttt{JuMP}. This is a direct substitue to MATLAB's \texttt{fmincon}.
+
+\begin{minted}{julia}
+# ===== Engineering Mathematics -- Homework 4 ===== #
+# Author: Esraaj Sarkar Gupta
+# Date: 4th April, 2026
+
+using JuMP
+using Ipopt
+
+# -- Define Surfaces -- #
+# Define optimization surface
+z(x,y) = (x * (x-y))^2 - exp(-x^2-y^2) - cos(x)
+
+# Define constraint plane
+p(x,y) = -3*(x+y)
+
+
+function myFmincon()
+    # Init optimizer model with Ipopt solver
+    model = Model(Ipopt.Optimizer)
+    
+    # Quiet!
+    set_silent(model)
+
+    # Define variables
+    @variable(model, -1.0 <= x <= 1.0)
+    @variable(model, -1.0 <= y <= 1.0)
+    @variable(model, z)
+
+    # Initial guesses
+    set_start_value(x, 0.2)
+    set_start_value(y, 0.3)
+    set_start_value(z, -1.5)
+
+    # Define objective
+    @objective(model, Min, z)
+
+    # Define constraints
+    @constraint(model, plane, x + y + z/3 == 0)
+    
+    # The unit circle inequality constraint
+    @constraint(model, circle, x^2 + y^2 <= 1.0)
+    
+    # The surface equality constraint
+    @constraint(model, surface, z == (x * (x - y))^2 - exp(-x^2 - y^2) - cos(x))
+
+    # Run!
+    optimize!(model)
+
+    return value(x), value(y), value(z), termination_status(model)
+end
+
+# Execute the function
+x_opt, y_opt, z_opt, status = myFmincon()
+
+println("Solver Status: ", status)
+println("Optimal x ≈ ", round(x_opt, digits=3))
+println("Optimal y ≈ ", round(y_opt, digits=3))
+println("Optimal z ≈ ", round(z_opt, digits=3))
+\end{minted}
+
+Ipopt yields a result of $(x,y,z) \approx (0.236, 0.364, -1.8)$.
+
 \section{Basics of Periodic Solutions}
+
 Consider a system defined by the equation of motion
 
 \begin{equation}
@@ -2011,6 +2057,29 @@ This can be solved analytically, and has been -- as the famous Kepler Problem. H
         \label{fig:keplers-problem}
 \end{figure}
 
+One can check for numerical inaccuracy in trajectories such as the one presented in Fig. \ref{fig:keplers-problem} by simply reducing the tolerance of the solver and looking out for changes in the suspected inaccuracies. Luckily, when this experiment was carried out for this example, reducing the relative and absolute tolerances to \texttt{1e-8} yields a near-perfect solution.
+
+\begin{figure}[htbp]
+    \centering
+    % First subfigure
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/1em3.png} 
+        \caption{\texttt{tol = 1e-3}}
+        \label{fig:sub1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{question13/1em8.png} 
+        \caption{\texttt{tol = 1e-8}}
+        \label{fig:sub2}
+    \end{subfigure}
+    
+    \caption{Experiment to check for numerical inaccuracies}
+    \label{fig:tolerance_comparison}
+\end{figure}
+
 \subsection{General Non-Linear Second Order Systems}
 
  The systems thus covered in this section may be generalized with the equation
@@ -2059,6 +2128,8 @@ In the special case where the system initially has no velocity and $k_X = k_y$, 
     \label{fig:question13_straightlines}
 \end{figure}
 
+\vfill
+
 \subsection{Using Root-Finding methods to Indetify Periodic Solutions}
 A solution $u(t)$ is said to be periodic if, for an arbitrary $T$, it satisfies the condition
 
@@ -2067,6 +2138,86 @@ A solution $u(t)$ is said to be periodic if, for an arbitrary $T$, it satisfies 
 \end{equation}
 
 One may treat this as a Boundary Value Problem, with the condition that the initial value must be equal to the final value. Formally, this approach is known as the shooting method. The \textit{Flow Map} $\Phi_t(x_0) = x(t)$ is used to define the \textit{Shooting Function} $G(u_0, T)$.
+\begin{minted}{julia}
+# ---- Looking for a Periodic Solution ---- #
+# Using the Shooting Function Method
+x_fixed = 0.0 # Poincare Manifold
+
+function shooting_residual!(F, vars)
+    # Unpack guesses
+    y_guess, vx_guess, vy_guess, T_guess = vars
+
+    # Force x = 0.0 (Poincare Manifold)
+    u_start = [x_fixed, y_guess, vx_guess, vy_guess]
+
+    # Tight tolerance solving
+    prob_shoot = ODEProblem(spring_damper_mass_system!, u_start, (0.0, T_guess), params)
+    sol_shoot = solve(prob_shoot, Tsit5(), reltol=1e-11, abstol=1e-11)
+
+    u_end = sol_shoot.u[end]
+
+    # Check residuals
+    F[1] = u_end[1] - x_fixed
+    F[2] = u_end[2] - y_guess
+    F[3] = u_end[3] - vx_guess
+    F[4] = u_end[4] - vy_guess
+end
+\end{minted}
+
+The parameter space is sampled using a uniform distribution.
+
+\begin{minted}{julia}
+
+function generate_random_guess(bounds::SearchBounds)
+    ymin, ymax   = bounds.ymin, bounds.ymax
+    vxmin, vxmax = bounds.vxmin, bounds.vxmax
+    vymin, vymax = bounds.vymin, bounds.vymax
+    Tmin, Tmax   = bounds.Tmin, bounds.Tmax
+
+    y_rand  = ymin  + (ymax - ymin)   * rand()
+    vx_rand = vxmin + (vxmax - vxmin) * rand()
+    vy_rand = vymin + (vymax - vymin) * rand()
+    T_rand  = Tmin  + (Tmax - Tmin)   * rand()
+
+    # Return the formatted guess vector
+    return [y_rand, vx_rand, vy_rand, T_rand]
+end
+
+search_space = SearchBounds(
+    3.0, 7.0,   # Y position bounds
+    5.0, 7.0,   # Vx bounds
+    4.0, 15.0,  # Vy bounds
+    15.0, 20.0  # Period bounds
+)
+\end{minted}
+
+The program is then run \texttt{N} times. The loop breaks if a solution is found.
+
+\begin{minted}{julia}
+for attempt in 1:max_attempts
+    # Generate the bounded random guess using our new function
+    initial_guess_pos = generate_random_guess(search_space)
+    
+    result_pos = try
+        nlsolve(
+            shooting_residual!,
+            initial_guess_pos,
+            autodiff=:forward,
+            show_trace=false, 
+            iterations=50     
+        )
+    catch e
+        nothing 
+    end
+
+    if result_pos !== nothing && converged(result_pos) && result_pos.zero[4] > 0
+        global best_root = result_pos.zero
+        global found_solution = true
+        println("\n\nSuccess on attempt $(attempt)!")
+        break
+    end
+end
+\end{minted}
 
 \begin{figure}[htbp]
     \centering
@@ -2098,7 +2249,7 @@ One may treat this as a Boundary Value Problem, with the condition that the init
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{question13/periodic_orbit_static2.png}
+        \includegraphics[width=\textwidth]{question13/periodic_orbit_static6.png}
         \caption{}
         \label{fig:bottom_right}
     \end{subfigure}
@@ -2115,6 +2266,8 @@ However, for autonomous systems (where the rate of change of the system depends 
 
 
 It is observed that the program finds significant fewer solutions when the tolerances of the fifth order solver used to solve for the sysem is lower ($10^{-8}$). The program is allowed to explore more solutions when the tolerances are reduced to the order of $10^{-11}$.
+
+\vfill
 
 \section{Systems with Periodic Motion}
 
@@ -2231,6 +2384,7 @@ In this system, $\mu$ represents the non-linearity and damping strength. For any
 
 
 \section{Initial Value Problem with Collocation}
+
 \subsection{Review: Euler's Method}
 
 Given a system
@@ -2264,6 +2418,16 @@ It is hypothesised that one may improve the accuracy of the integrator should th
 \begin{equation}
     z_{n+1} = z_n + h \frac{\dot{z}_n + \dot{z}_{n+1}}{2}
 \end{equation}
+
+\begin{minted}{julia}
+function trapezoid_integration(u, time_step = 0.01)
+    x, v = u
+    dx, dv = system!(u)
+    v_new = v + time_step * dv # Because dv is a constant here
+    x_new = x + (time_step / 2.0) * (v + v_new)
+    return x_new, v_new
+end
+\end{minted}
 
 \begin{figure}[h!]
     \centering
@@ -2335,11 +2499,11 @@ for some value $s$. In other words, $x(1;s) = x(t = 1)$ given that $\dot{x}(0) =
     \caption{$F$ vs $s$ Plot}
 \end{figure}
 
-One may solve for the residual of the shooting function and required final value of $x$ using a numerical root-finding method to determine a suitable value for $s$. Here, the \textit{bijection method} is used. An example program in julia is given below.
+One may solve for the residual of the shooting function and required final value of $x$ using a numerical root-finding method to determine a suitable value for $s$. Here, the \textit{bisection method} is used. An example program in julia is given below.
 \newpage
 
 \begin{minted}{julia}
-function bijection_solve(
+function bisection_solve(
     func,
     a,
     b,
@@ -2392,6 +2556,7 @@ The program returns a result of $v(0) = 0.500$. One may verify this result analy
 \end{figure}
 
 \section{Introduction to Collocation}
+
 In this section, the discussion shifts from forward methods (like Euler Integration) and shooting methods to the concept of \textit{collocation}.
 
 \subsection{The Theory}
@@ -2612,7 +2777,7 @@ function optimize_trajectory(
     @objective(
         model,
         Min,
-        sum(u[k]^2 * h for k in 1:N) # Minimize Energy
+        sum(u[k]^2 * h for k in 1:N+1) # Minimize Energy
     )
 
     # -- Enforce Constraints -- #
@@ -2694,6 +2859,428 @@ if method == :euler
 
 It is evident that there are obvious differences between the trajectories optimized using Euler Discretization and Trapezoidal Discretization.
 
-\section{}
+\section{Matrix Reconstruction and Numerical Jacobians}
+
+\subsection{Reconstructing a Linear Black-Box (Matrix A)}
+Suppose we have a black-box function that applies a linear transformation $u = A v$, where $A$ is an unknown $4 \times 4$ matrix:
+\begin{equation}
+    A = \begin{bmatrix}
+    a_{11} & a_{12} & a_{13} & a_{14} \\
+    a_{21} & a_{22} & a_{23} & a_{24} \\
+    a_{31} & a_{32} & a_{33} & a_{34} \\
+    a_{41} & a_{42} & a_{43} & a_{44}
+    \end{bmatrix}
+\end{equation}
+
+To determine the individual elements of $A$ without analytical access, we systematically evaluate the function using the standard basis vectors. For example, multiplying $A$ by the first basis vector $e_1 = [1, 0, 0, 0]^T$ isolates the first column:
+\begin{equation}
+    A e_1 = \begin{bmatrix}
+    a_{11} & a_{12} & a_{13} & a_{14} \\
+    a_{21} & a_{22} & a_{23} & a_{24} \\
+    a_{31} & a_{32} & a_{33} & a_{34} \\
+    a_{41} & a_{42} & a_{43} & a_{44}
+    \end{bmatrix}
+    \begin{bmatrix} 1 \\ 0 \\ 0 \\ 0 \end{bmatrix}
+    = \begin{bmatrix} a_{11} \\ a_{21} \\ a_{31} \\ a_{41} \end{bmatrix}
+\end{equation}
+
+By probing the system iteratively with $e_2, e_3,$ and $e_4$, we extract the remaining columns. The complete matrix is reconstructed by horizontally concatenating the resulting vectors. This is mathematically equivalent to passing the identity matrix $I_4$ through the system:
+\begin{equation}
+    A = \Big[ f(e_1) \;\Big|\; f(e_2) \;\Big|\; f(e_3) \;\Big|\; f(e_4) \Big] = A I_4
+\end{equation}
+
+\subsection{The Non-Linear Case (Numerical Jacobian)}
+For non-linear systems, such as a full ODE simulation mapping an initial state $x_0$ to a final state $f(x_0)$, no global matrix $A$ exists. Instead, we seek the local linear approximation: the Jacobian matrix $J$.\\
+\\
+We construct $J$ column-by-column using a forward finite-difference approximation. We apply a small scalar perturbation $\epsilon$ in the direction of each standard basis vector $e_j$. The change in the system's output relative to the nominal unperturbed trajectory isolates the rate of change with respect to that specific state variable:
+\begin{equation}
+    \Delta y = f(x_0 + \epsilon e_j) - f(x_0)
+\end{equation}
+Dividing by the step size yields the $j$-th column of the Jacobian:
+\begin{equation}
+    J_{*, j} \approx \frac{f(x_0 + \epsilon e_j) - f(x_0)}{\epsilon}
+\end{equation}
+
+To build the full $n \times n$ Jacobian matrix, this finite-difference probing is repeated for all state variables. The resulting matrix $J$ can then be analyzed for its eigenvalues to determine the local stability of the system.
+
+\section{Optimal Planning and Control}
+
+\textbf{Problem Setup}
+Consider a 2D point-mass model representing a drone or lander governed by the following equations of motion:
+\begin{align}
+    \dot{x} &= v_x \\
+    \dot{z} &= v_z \\
+    \dot{v}_x &= u_x \\
+    \dot{v}_z &= u_z - g
+\end{align}
+where $g = 1.62 \text{ m/s}^2$ represents the gravitational acceleration (e.g., lunar gravity).
+
+\textbf{Boundary Conditions}
+The system is subject to the following initial conditions at $t = 0$:
+\begin{equation}
+    x(0) = x_0, \quad z(0) = z_0, \quad v_x(0) = v_{x0}, \quad v_z(0) = v_{z0}
+\end{equation}
+The target final conditions at an unspecified or specified terminal time $T$ require a precise landing at the origin with zero velocity:
+\begin{equation}
+    x(T) = 0, \quad z(T) = 0, \quad v_x(T) = 0, \quad v_z(T) = 0
+\end{equation}
+
+\textbf{Constraints}
+\begin{itemize}
+    \item \textbf{Control Constraint:} The total thrust magnitude is bounded by a maximum capability $u_{\max}$:
+    \begin{equation}
+        \sqrt{u_x^2 + u_z^2} \le u_{\max}
+    \end{equation}
+    \item \textbf{State Constraint:} The vehicle must remain above or at ground level throughout the trajectory:
+    \begin{equation}
+        z \ge 0
+    \end{equation}
+\end{itemize}
+
+\subsection{Optimal Plan}
+With the objective of minimizing the control effort
+
+\begin{equation}
+    \min \int_0^T ||u(t)||^2 dt
+\end{equation}
+
+this can be posed as an optimization problem. The system is given the initial state $(x, z, v_x, v_z) = (5, 10, -1, -2)$ and solved using collocation.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{question21/all.png}
+    \caption{Trajectory and Control of the Ideal System}
+\end{figure}
+
+\subsection{Controllable Region Estimation}
+This subsection focuses on estimating a controllable region. This section is unnecessarily overcomplicated.
+
+\subsubsection{Monte Carlo Sampling}
+The first approach considered was an Monte Carlo approach. With fixed initial velocities, the $x$--$z$ space is sampled using a uniform distribution. The system run through the non-linear optimizer. Chosen points are classified into ``Feasible'' and ``Infeasible'' classes depending on whether or not the optimizer could solve the problem locally or not.
+
+\begin{minted}{julia}
+# ---- Monte Carlo Engine ---- #
+function MC(num_samples, x_bounds, z_bounds)
+    x_dist = Uniform(x_bounds[1], x_bounds[2])
+    z_dist = Uniform(z_bounds[1], z_bounds[2])
+
+    # Store raw MC data
+    mc_x = Float64[]
+    mc_z = Float64[]
+    mc_status = Float64[] # 1.0 for feasible, 0.0 for infeasible
+
+    for i in 1:num_samples
+        sample_x = rand(x_dist)
+        sample_z = rand(z_dist)
+        
+        state_zero = (sample_x, sample_z, -1.0, -2.0)
+        state_end = (0.0, 0.0, 0.0, 0.0)
+
+        # Using N=80 for slightly faster MC iterations
+        is_feasible = optimize_trajectory(80, state_zero, state_end, (0.0, 5.0), 15.0, :trapezoid)
+
+        push!(mc_x, sample_x)
+        push!(mc_z, sample_z)
+        push!(mc_status, is_feasible ? 1.0 : 0.0)
+        
+        if i % 50 == 0
+            println("Completed $i / $num_samples samples...")
+        end
+    end
+
+    println("Finished sampling! Interpolating data for contour plot...")
+    return mc_x, mc_z, mc_status
+end
+\end{minted}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{question21/MC_contours.png}
+    \caption{MC Convergence Contours}
+\end{figure}
+
+This approach was time consuming, and the results make it fairly clear that this was an unwise approach.
+
+\subsubsection{Random Walks}
+The next approach considered was Random Walks. The system was initialized at the final state of the problem and allowed to carry out a random walk -- the direction of the control was chosen randomly and the maximum available magnitude of control was applied. This method is much cheaper computationally, allowing a total of $10^8$ data points. Unfortunately, this method yields a probability distribution around the inital point, instead of the maximum reach. In hindsight, this too was an unwise approach.
+
+\begin{minted}{julia}
+function backward_random_reachability(num_samples, T, N, u_max)
+    h = T / N
+    
+    valid_x0 = Float64[]
+    valid_z0 = Float64[]
+    valid_vx0 = Float64[]
+    valid_vz0 = Float64[]
+
+    println("Starting Backward Reachability Sampling ($num_samples trajectories)...")
+
+    for i in 1:num_samples
+        x, z = 0.0, 0.0
+        vx, vz = 0.0, 0.0
+        
+        # Initialize random controls at the end-state
+        theta = rand(Uniform(0, 2*pi))
+        r = u_max * sqrt(rand()) 
+        ux = r * cos(theta)
+        uz = r * sin(theta)
+
+        valid_trajectory = true
+
+        for k in 1:N
+            # Random Walk Controls
+            ux += rand(Normal(0.0, 1.5))
+            uz += rand(Normal(0.0, 1.5))
+            
+            # Clamp thrust vector magnitude to u_max
+            mag = sqrt(ux^2 + uz^2)
+            if mag > u_max
+                ux = (ux / mag) * u_max
+                uz = (uz / mag) * u_max
+            end
+
+            # Reverse Euler Integration
+            vx_prev = vx - h * ux
+            vz_prev = vz - h * (uz - g)
+            
+            x_prev = x - h * vx_prev
+            z_prev = z - h * vz_prev
+
+            # Update state for the next backward step
+            x, z = x_prev, z_prev
+            vx, vz = vx_prev, vz_prev
+
+            if z < 0.0
+                valid_trajectory = false
+                break
+            end
+        end
+
+        if valid_trajectory
+            push!(valid_x0, x)
+            push!(valid_z0, z)
+            push!(valid_vx0, vx)
+            push!(valid_vz0, vz)
+        end
+    end
+\end{minted}
+
+However, the idea that the system can be evolved backwards to see where it can start from and end up in the desired end-point can be pursued with smarter methods.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{question21/controled_randomwalk.png}
+    \caption{Random-Walk Finishing Point Contours}
+\end{figure}
+
+\subsubsection{Maximum Reverse}
+Instead of allowing the point to carry out a random walk, the point is assigned an angle at the start; control is applied at maximum magnitude in this direction for the entire duration of the simulation. This, very simply yields the maximum reach of control.
+
+\begin{minted}{julia}
+# ---- Deterministic Boundary Mapping ---- #
+function map_reachability_boundary(
+    num_angles, 
+    T, 
+    N, 
+    u_max
+)
+    h = T / N
+    
+    # Arrays to store the discovered t=0 boundary states
+    boundary_x0 = Float64[]
+    boundary_z0 = Float64[]
+
+    println("Starting Deterministic Boundary Sweep ($num_angles angles)...")
+
+    # Sweep theta from 0 to 2π
+    angles = range(0, 2*pi, length=num_angles)
+
+    for (i, theta) in enumerate(angles)
+        # Start at the target origin at T_final
+        x, z, vx, vz = 0.0, 0.0, 0.0, 0.0
+        
+        valid_trajectory = true
+
+        # Lock the max control effort in the current direction theta
+        ux = u_max * cos(theta)
+        uz = u_max * sin(theta)
+
+        # Step backward in time
+        for k in 1:N
+            # Reverse Euler Integration
+            vx_prev = vx - h * ux
+            vz_prev = vz - h * (uz - g)
+            
+            x_prev = x - h * vx_prev
+            z_prev = z - h * vz_prev
+
+            # Update state for the next backward step
+            x = x_prev
+            z = z_prev
+            vx = vx_prev
+            vz = vz_prev
+
+            # State constraint: Check if trajectory goes underground
+            if z < 0.0
+                valid_trajectory = false
+                break
+            end
+        end
+
+        # Only save the start points that never violate the ground constraint
+        if valid_trajectory
+            push!(boundary_x0, x)
+            push!(boundary_z0, z)
+        end
+        
+        if i % 100 == 0
+            println("Swept $i / $num_angles directions...")
+        end
+    end
+
+    println("Finished! Mapped $(length(boundary_x0)) boundary points.")
+    return boundary_x0, boundary_z0
+end 
+\end{minted}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{question21/max_reach_contour.png}
+\end{figure}
+
+\section{Optimal Control with Perturbations}
+
+In this section, it is demonstrated that path planning with optimal control is not useful in real-world applications where disturbances are introduced to the control. This section focuses on the same problem as the last section.
+
+\begin{equation}
+    u_\text{true} = \alpha u_\text{ideal}
+\end{equation}
+
+A disturbance is introduced to $u$ by introducing a term $\alpha$. An open-loop trajectory optimizer does not take this into account; and thus the planner fails.\\
+\\
+The optimizer is run as it is in the previous question, and the controls for each step are frozen. The disturbances are introduced to the system and the dynamics of the system are rerun from the initial state with these frozen weights. Here $\alpha \in [0.70, 0.90]$ .
+
+\begin{minted}{julia}
+for k in 1:N
+    # Apply runtime disturbance
+    α = rand() * (0.9 - 0.7) + 0.7
+    
+    # Step physics forward using frozen controls
+    x_dist[k+1] = x_dist[k] + h * vx_dist[k]
+    z_dist[k+1] = z_dist[k] + h * vz_dist[k]
+
+    # Evolve with the frozen "nominal" controls
+    vx_dist[k+1] = vx_dist[k] + h * ux_nom[k] * α
+    vz_dist[k+1] = vz_dist[k] + h * (uz_nom[k] * α - g)
+    
+    # Calculate spatial error at the new step
+    dx = abs(x_dist[k+1] - x_nom[k+1])
+    dz = abs(z_dist[k+1] - z_nom[k+1])
+    
+    step_distance_error[k+1] = sqrt(dx^2 + dz^2)
+    cumulative_difference[k+1] = cumulative_difference[k] + step_distance_error[k+1]
+end
+\end{minted}
+
+As expected, the control fails. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{question22/failure.png}
+    \caption{Failure of open-loop control}
+\end{figure}
+
+\section{Model Predictive Control}
+
+In order to introduce real-time control to a trajectory optimizer, one must update the controls with every step, taking into account the disturbance in the present and previous states.\\
+\\
+This is executed by first computing the ideal trajectory without any disturbance. Next, the real-time controller is given a cost function that punishes the system for deviating from the ideal trajectory. Conventionally, larger residuals in position are deemed costlier than residuals in velocity.\\
+\\
+
+The real-time controller is thus allowed to look $N_p$ steps into the future, allowing it to take into account future steps for its present control. The value $N_p$ is called the horizon distance.
+
+The real-time cost function is given as
+
+\begin{equation}
+    \min \sum_{i=0}^{Np} 
+    \Big(X - X_\text{ref}\Big)^T Q \Big(X - X_\text{ref}\Big)
+    u^T R u
+\end{equation}
+
+where the matrices $Q$ and $R$ are used to assign cost weights to the positions and velocities, and the control effort respectively. Generally, $Q$ and $R$ are disgonal matrices. In this script, these matrices are diagonal and decomposed into a series of simple algebraic terms.
+
+\begin{minted}{julia}
+@objective(model, Min,
+        sum(
+            q[1] * (x[k]  - state_ref_horizon[k][1])^2 +
+            q[2] * (z[k]  - state_ref_horizon[k][2])^2 +
+            q[3] * (vx[k] - state_ref_horizon[k][3])^2 +
+            q[4] * (vz[k] - state_ref_horizon[k][4])^2 +
+            r[1] * ux[k]^2 +
+            r[2] * uz[k]^2
+            for k in 1:Np+1
+        )
+    )
+\end{minted}
+
+In this run, the disturbance $\alpha \sim \mathcal{N}(0.8, 0.33)$ is sampled from a normal distribution, and clamped between 0 and 1, \texttt{α = clamp(α, 0.0, 1.0)}.
+
+\begin{minted}{julia}
+function simulate_mpc_run(Np, n_steps, state_initial, ref_trajectory, Q, R, step_t, u_max, g, μ, σ)
+    println("Running MPC Simulation for Np = $Np...")
+    state_actual = copy(state_initial)
+    trajectory_mpc = [copy(state_actual)]
+    
+    for t in 1:n_steps
+        reference_start = t
+        reference_end = min(t + Np, n_steps + 1)
+        
+        # Slice the dynamically feasible path
+        state_ref_horizon = ref_trajectory[reference_start:reference_end]
+
+        # Pad with the final target state
+        while length(state_ref_horizon) < Np + 1
+            push!(state_ref_horizon, ref_trajectory[end])
+        end
+
+        # Calculate optimal control
+        ux_opt, uz_opt = solve_mcp(state_actual, state_ref_horizon, Q, R, Np, step_t, u_max)
+
+        # Inject the Gaussian disturbance
+        α = μ + σ * randn()
+        α = clamp(α, 0.0, 1.0) # Keep efficiency strictly between
+
+        u_applied = [α * ux_opt, α * uz_opt]
+
+        # Step the true physics forward with the degraded control
+        state_actual = step_dynamics(state_actual, u_applied, step_t, g)
+        push!(trajectory_mpc, copy(state_actual))
+
+        # Check for crashes
+        if state_actual[2] <= 0.0
+            break
+        end
+    end
+    
+    return trajectory_mpc
+end
+\end{minted}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{question23/mpc.png}
+    \caption{MPC, $N_p$ = 5}
+\end{figure}
+
+\subsection{Results of Varying the Horizon Distance}
+
+Varying the horizon distance allows the optimizer to plan further ahead into the future. It is intuitively and experimentally evident that larger values of $N_p$ yield better results from the predictive controller.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{question23/varying_NP.png}
+    \caption{Results from varying $N_p$}
+\end{figure}
+
 
 \end{document}
