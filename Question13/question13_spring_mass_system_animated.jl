@@ -197,7 +197,7 @@ function generate_random_guess(bounds::SearchBounds)
     vy_rand = vymin + (vymax - vymin) * rand()
     T_rand  = Tmin  + (Tmax - Tmin)   * rand()
 
-    # 3. Return the formatted guess vector
+    # Return the formatted guess vector
     return [y_rand, vx_rand, vy_rand, T_rand]
 end
 
